@@ -120,7 +120,7 @@ fun WorkoutTopBar(state: WorkoutUiState, onBack: () -> Unit, onFinish: () -> Uni
                 Icon(SlicedIcons.Back, null, Modifier.size(18.dp))
             })
             Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Plate(d.treino, PlateSize.Small)
+                Plate(d.treino, size = PlateSize.Small)
                 Text(t?.name.orEmpty(), style = SlicedTheme.type.treinoName, color = c.fg, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Text(

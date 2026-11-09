@@ -39,7 +39,7 @@ enum class PlateSize(val size: Dp, val border: Dp, val font: TextUnit) {
 
 /** A "anilha": letra do treino num círculo com borda grossa na cor do treino. */
 @Composable
-fun Plate(treinoId: String, size: PlateSize = PlateSize.Medium, modifier: Modifier = Modifier) {
+fun Plate(treinoId: String, modifier: Modifier = Modifier, size: PlateSize = PlateSize.Medium) {
     val c = SlicedTheme.colors
     Box(
         modifier

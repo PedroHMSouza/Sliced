@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
@@ -140,8 +141,9 @@ private fun SessionCard(item: SessionItem, open: Boolean, onToggle: () -> Unit, 
             Plate(s.treino)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
                 Text("${item.dateLabel} · ${item.name}", style = SlicedTheme.type.display.copy(fontSize = 18.sp), color = c.fg)
+                val setsText = pluralStringResource(R.plurals.sets_count, item.sets, item.sets)
                 val meta = buildString {
-                    append("${s.durationMin} min · ${item.sets} séries")
+                    append("${s.durationMin} min · $setsText")
                     if (item.volumeKg > 0) append(" · ${Fmt.number(Math.round(item.volumeKg))} kg")
                 }
                 Text(meta, style = SlicedTheme.type.small, color = c.muted)

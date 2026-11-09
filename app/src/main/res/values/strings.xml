@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Diário de Treino</string>
     <string name="tab_treinos">Treinos</string>
     <string name="tab_historico">Histórico</string>
@@ -19,6 +19,11 @@
     <string name="tag_next">Próximo</string>
     <string name="action_continue">Continuar</string>
     <string name="store_local">Seus treinos ficam salvos neste celular e funcionam sem internet.</string>
+    <plurals name="sets_count">
+        <item quantity="one">%d série</item>
+        <item quantity="many">%d séries</item>
+        <item quantity="other">%d séries</item>
+    </plurals>
     <plurals name="exercises_count">
         <item quantity="one">%d exercício</item>
         <item quantity="many">%d exercícios</item>
@@ -29,7 +34,7 @@
     <string name="workout_back">Treinos</string>
     <string name="workout_finish">Finalizar</string>
     <string name="workout_finish_x">Finalizar Treino %1$s</string>
-    <string name="workout_progress">%1$d de %2$d séries feitas. Toque em ✓ para registrar a série e iniciar o descanso; campos vazios usam os valores da última vez.</string>
+    <string name="workout_progress" tools:ignore="PluralsCandidate">%1$d de %2$d séries feitas. Toque em ✓ para registrar a série e iniciar o descanso; campos vazios usam os valores da última vez.</string>
     <string name="workout_add_set">+ Série</string>
     <string name="workout_remove_set">− Série</string>
     <string name="workout_rest">Descanso %1$d s</string>
@@ -58,7 +63,7 @@
     <string name="chart_best">Maior carga:</string>
     <string name="chart_delta">Variação desde o primeiro registro:</string>
     <string name="chart_need_more">Registre mais um treino com este exercício para ver a linha de evolução.</string>
-    <string name="chart_a11y">Maior carga por treino, de %1$s a %2$s kg, em %3$d treinos</string>
+    <string name="chart_a11y" tools:ignore="PluralsCandidate">Maior carga por treino, de %1$s a %2$s kg, em %3$d treinos</string>
 
     <!-- Finalizar -->
     <string name="finish_title">Finalizar Treino %1$s</string>
@@ -104,7 +109,7 @@
     <!-- Acessibilidade -->
     <string name="a11y_minus15">Menos 15 segundos</string>
     <string name="a11y_plus15">Mais 15 segundos</string>
-    <string name="a11y_set_done">Série %1$d feita</string>
+    <string name="a11y_set_done" tools:ignore="PluralsCandidate">Série %1$d feita</string>
     <string name="a11y_done">marcada</string>
     <string name="a11y_not_done">não marcada</string>
     <string name="a11y_expanded">aberto</string>

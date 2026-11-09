@@ -1,7 +1,17 @@
 package com.pedrohmsouza.sliced.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.pedrohmsouza.sliced.timer.RestState
+import com.pedrohmsouza.sliced.ui.components.RestBar
+import com.pedrohmsouza.sliced.ui.workout.FinishSheetContent
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
@@ -72,6 +82,39 @@ class WorkoutScreenshotTest {
             }
         }
         compose.onRoot().captureRoboImage("screenshots/$name.png")
+    }
+
+    @Test fun workout_restBar() {
+        val st = state("A")
+        val now = st.draft!!.startedAt + 10 * 60_000L
+        compose.setContent {
+            SlicedTheme(darkTheme = false) {
+                Box(Modifier.fillMaxSize().background(SlicedTheme.colors.bg)) {
+                    Column {
+                        WorkoutTopBar(st, {}, {}, now = { now })
+                        CenteredColumn { WorkoutScreen(st, noop, null, ScreenPadding) }
+                    }
+                    Box(Modifier.align(Alignment.BottomCenter)) {
+                        RestBar(RestState(now + 63_000, 90, "Supino reto na máquina"), {}, {}, now = { now })
+                    }
+                }
+            }
+        }
+        compose.onRoot().captureRoboImage("screenshots/workout_rest.png")
+    }
+
+    @Test fun finishSheet() {
+        val st = state("A")
+        compose.setContent {
+            SlicedTheme(darkTheme = false) {
+                Box(Modifier.fillMaxSize().background(Color(0x73000000)), contentAlignment = Alignment.BottomCenter) {
+                    Box(Modifier.background(SlicedTheme.colors.surface, RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)).padding(top = 20.dp)) {
+                        FinishSheetContent("A", 47, st.progress, false, {}, {}, {})
+                    }
+                }
+            }
+        }
+        compose.onRoot().captureRoboImage("screenshots/finish_sheet.png")
     }
 
     @Test fun workoutA_light() = shoot("workout_a_light", false, state("A"))

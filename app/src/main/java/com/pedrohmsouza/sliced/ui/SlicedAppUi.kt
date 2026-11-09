@@ -23,8 +23,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -61,12 +63,13 @@ fun SlicedAppUi() {
     val container = remember { (context.applicationContext as SlicedApp).container }
     val nav = rememberNavController()
     val snackbar = remember { SnackbarHostState() }
+    val resources = LocalResources.current
 
     // Avisos vindos dos ViewModels (ex.: "Treino A salvo · 52 min").
     LaunchedEffect(Unit) {
         container.messages.messages.collect { m ->
             snackbar.currentSnackbarData?.dismiss()
-            snackbar.showSnackbar(context.getString(m.res, *m.args.toTypedArray()))
+            snackbar.showSnackbar(resources.getString(m.res, *m.args.toTypedArray()))
         }
     }
 
@@ -119,9 +122,10 @@ fun SlicedAppUi() {
                 val state by vm.uiState.collectAsStateWithLifecycle()
                 val notifications = rememberNotificationAccess()
                 KeepScreenOn()
-                LaunchedEffect(state.loading, state.draft) {
-                    // Sem treino em andamento (ex.: abriu por um atalho velho): volta para Treinos.
-                    if (!state.loading && state.draft == null) nav.leaveWorkout(null)
+                LaunchedEffect(state.loading, state.draft, state.closed) {
+                    // Não havia treino em andamento (ex.: voltou por um atalho velho): volta para Treinos.
+                    // Depois de salvar/descartar, quem navega é o evento Saved/Closed.
+                    if (!state.loading && state.draft == null && !state.closed) nav.leaveWorkout(null)
                 }
                 // Um único coletor de eventos (um Channel entrega cada evento a um só coletor).
                 var focusRequest by remember { mutableStateOf<WorkoutEvent.FocusField?>(null) }
@@ -177,6 +181,9 @@ private fun NavHostController.goTab(tab: MainTab) {
 
 /** Sai do treino: para o Histórico (com a sessão salva aberta) ou de volta para Treinos. */
 private fun NavHostController.leaveWorkout(savedSessionId: String?) {
+    // Durante a animação de saída a tela de treino ainda está na composição e pode pedir
+    // para sair de novo; só age se o treino for mesmo a tela atual.
+    if (currentDestination?.hasRoute(WorkoutRoute::class) != true) return
     if (savedSessionId != null) {
         navigate(HistoryRoute(savedSessionId)) { popUpTo(HomeRoute) }
     } else if (!popBackStack(HomeRoute, inclusive = false)) {

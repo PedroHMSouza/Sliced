@@ -123,7 +123,7 @@ private fun TreinoRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Plate(t.id, PlateSize.Large)
+            Plate(t.id, size = PlateSize.Large)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(t.name, style = SlicedTheme.type.treinoName, color = c.fg)
                 val meta = buildString {

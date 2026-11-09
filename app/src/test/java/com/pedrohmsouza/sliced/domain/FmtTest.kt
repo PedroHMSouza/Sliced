@@ -43,6 +43,7 @@ class FmtTest {
         assertEquals("30 min · 7,5%", Fmt.set(RecordType.CARDIO, LoggedSet(minutes = 30, incline = 7.5)))
         assertEquals("—", Fmt.set(RecordType.WR, null))
         assertEquals("42,5×10", Fmt.setShort(RecordType.WR, LoggedSet(kg = 42.5, reps = 10)))
+        assertEquals("30×–", Fmt.setShort(RecordType.WR, LoggedSet(kg = 30.0)))
     }
 
     @Test fun dates_andClocks() {

@@ -58,7 +58,7 @@ fun WeekStrip(week: WorkoutRules.Week, modifier: Modifier = Modifier) {
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Text(d.label.uppercase(), style = SlicedTheme.type.tiny, color = c.muted)
-                    if (d.treino != null) Plate(d.treino, PlateSize.Small)
+                    if (d.treino != null) Plate(d.treino, size = PlateSize.Small)
                     else Box(Modifier.size(26.dp).dashedBorder(c.line, 13.dp, 2.dp, circle = true))
                 }
             }

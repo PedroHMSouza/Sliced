@@ -59,7 +59,7 @@ object Fmt {
 
     /** Formato compacto do histórico: "40×12" para carga × reps; os outros tipos usam [set]. */
     fun setShort(type: RecordType, s: LoggedSet): String =
-        if (type == RecordType.WR) "${number(s.kg)}×${number(s.reps)}" else set(type, s)
+        if (type == RecordType.WR) "${s.kg?.let(::number) ?: "–"}×${s.reps?.let(::number) ?: "–"}" else set(type, s)
 
     private val WEEKDAYS = listOf("seg", "ter", "qua", "qui", "sex", "sáb", "dom")
     val WEEK_LETTERS = listOf("Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom")

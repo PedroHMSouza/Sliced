@@ -49,6 +49,8 @@ data class WorkoutUiState(
     val progress: WorkoutRules.Progress = WorkoutRules.Progress(0, 0, 0.0),
     val showFinish: Boolean = false,
     val saving: Boolean = false,
+    /** O treino acabou de ser salvo/descartado (a navegação vem pelo evento, não pelo "sem rascunho"). */
+    val closed: Boolean = false,
 )
 
 sealed interface WorkoutEvent {
@@ -78,8 +80,8 @@ class WorkoutViewModel(
     /** Fonte da verdade do treino em andamento enquanto a tela está aberta. */
     private val draft = MutableStateFlow<Draft?>(null)
     private val loaded = MutableStateFlow(false)
-    private val sheet = MutableStateFlow(false)
-    private val saving = MutableStateFlow(false)
+    private data class Flags(val sheet: Boolean = false, val saving: Boolean = false, val closed: Boolean = false)
+    private val flags = MutableStateFlow(Flags())
 
     private val sessions: StateFlow<List<Session>> =
         sessionRepo.sessions.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -108,8 +110,8 @@ class WorkoutViewModel(
         }
     }
 
-    val uiState: StateFlow<WorkoutUiState> = combine(draft, sessions, loaded, sheet, saving) { d, s, isLoaded, sh, sv ->
-        if (d == null) return@combine WorkoutUiState(loading = !isLoaded)
+    val uiState: StateFlow<WorkoutUiState> = combine(draft, sessions, loaded, flags) { d, s, isLoaded, f ->
+        if (d == null) return@combine WorkoutUiState(loading = !isLoaded, closed = f.closed)
         WorkoutUiState(
             loading = false,
             draft = d,
@@ -123,8 +125,8 @@ class WorkoutViewModel(
                 )
             },
             progress = WorkoutRules.progress(d),
-            showFinish = sh,
-            saving = sv,
+            showFinish = f.sheet,
+            saving = f.saving,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WorkoutUiState())
 
@@ -169,18 +171,18 @@ class WorkoutViewModel(
         if (sec > 0) rest.start(sec, e.name)
     }
 
-    fun onOpenFinish() { sheet.value = true }
-    fun onCloseFinish() { sheet.value = false }
+    fun onOpenFinish() = flags.update { it.copy(sheet = true) }
+    fun onCloseFinish() = flags.update { it.copy(sheet = false) }
 
     /** Salva no histórico; só depois apaga o rascunho (nada se perde se der erro). */
     fun onSave() {
         val d = draft.value ?: return
-        if (saving.value || WorkoutRules.progress(d).done == 0) return
-        saving.value = true
+        if (flags.value.saving || WorkoutRules.progress(d).done == 0) return
+        flags.update { it.copy(saving = true) }
         viewModelScope.launch {
             val session = WorkoutRules.buildSession(d, now(), program)
             val ok = runCatching { sessionRepo.save(session) }.isSuccess
-            saving.value = false
+            flags.update { it.copy(saving = false) }
             if (!ok) {
                 messages.show(R.string.msg_save_failed)
                 return@launch
@@ -198,7 +200,7 @@ class WorkoutViewModel(
     }
 
     private fun closeDraft() {
-        sheet.value = false
+        flags.value = Flags(closed = true)
         draft.value = null
         writes.trySend(Write.Clear)
         rest.stop()

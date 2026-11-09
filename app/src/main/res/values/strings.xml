@@ -39,6 +39,22 @@
     <string name="col_previous">Anterior</string>
     <string name="col_done">Feito</string>
 
+    <!-- Finalizar -->
+    <string name="finish_title">Finalizar Treino %1$s</string>
+    <string name="finish_duration">Duração</string>
+    <string name="finish_sets">Séries</string>
+    <string name="finish_volume">Volume</string>
+    <string name="finish_only_checked">Só as séries marcadas com ✓ entram no histórico.</string>
+    <string name="finish_none_checked">Nenhuma série marcada ainda. Marque as séries feitas com ✓ antes de salvar.</string>
+    <string name="finish_save">Salvar treino</string>
+    <string name="finish_saving">Salvando…</string>
+    <string name="finish_continue">Continuar treinando</string>
+    <string name="finish_discard">Descartar treino</string>
+    <string name="discard_title">Descartar o Treino %1$s?</string>
+    <string name="discard_text">As séries registradas neste treino serão perdidas.</string>
+    <string name="discard_confirm">Descartar</string>
+    <string name="cancel">Cancelar</string>
+
     <!-- Descanso -->
     <string name="rest_label">Descanso · %1$s</string>
     <string name="rest_over">Descanso acabou · próxima série</string>

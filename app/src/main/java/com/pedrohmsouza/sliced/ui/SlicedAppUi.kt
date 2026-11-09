@@ -37,6 +37,7 @@ import com.pedrohmsouza.sliced.ui.components.ScreenPadding
 import com.pedrohmsouza.sliced.ui.home.HomeScreen
 import com.pedrohmsouza.sliced.ui.home.HomeViewModel
 import com.pedrohmsouza.sliced.ui.theme.SlicedTheme
+import com.pedrohmsouza.sliced.ui.workout.FinishSheet
 import com.pedrohmsouza.sliced.ui.workout.KeepScreenOn
 import com.pedrohmsouza.sliced.ui.components.RestBar
 import com.pedrohmsouza.sliced.ui.workout.rememberNotificationAccess
@@ -136,6 +137,9 @@ fun SlicedAppUi() {
                     } else {
                         WorkoutTopBar(state, onBack = { nav.leaveWorkout(null) }, onFinish = vm::onOpenFinish, now = container.now)
                         CenteredColumn {
+                            if (state.showFinish) {
+                                FinishSheet(state, container.now, vm::onSave, vm::onCloseFinish, vm::onDiscard)
+                            }
                             WorkoutScreen(
                                 state, remember(vm) { vm.asActions() }, focusRequest, ScreenPadding,
                                 onEnableNotifications = notifications.request.takeIf { !notifications.enabled },

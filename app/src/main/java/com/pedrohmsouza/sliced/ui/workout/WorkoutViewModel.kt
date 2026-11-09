@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -67,7 +68,7 @@ interface RestControl {
 }
 
 class WorkoutViewModel(
-    private val program: ProgramSource,
+    programs: Flow<ProgramSource>,
     private val sessionRepo: SessionRepository,
     private val draftRepo: DraftRepository,
     private val messages: UserMessages,
@@ -85,6 +86,9 @@ class WorkoutViewModel(
 
     private val sessions: StateFlow<List<Session>> =
         sessionRepo.sessions.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Ficha atual (null até a primeira leitura). Se for editada durante o treino, o rascunho não muda. */
+    private val program: StateFlow<ProgramSource?> = programs.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val events = Channel<WorkoutEvent>(Channel.BUFFERED)
     val eventFlow: Flow<WorkoutEvent> = events.receiveAsFlow()
@@ -105,19 +109,20 @@ class WorkoutViewModel(
             }
         }
         viewModelScope.launch {
+            program.filterNotNull().first()
             draft.value = draftRepo.draft.first()
             loaded.value = true
         }
     }
 
-    val uiState: StateFlow<WorkoutUiState> = combine(draft, sessions, loaded, flags) { d, s, isLoaded, f ->
-        if (d == null) return@combine WorkoutUiState(loading = !isLoaded, closed = f.closed)
+    val uiState: StateFlow<WorkoutUiState> = combine(draft, sessions, loaded, flags, program) { d, s, isLoaded, f, p ->
+        if (d == null || p == null) return@combine WorkoutUiState(loading = !isLoaded, closed = f.closed)
         WorkoutUiState(
             loading = false,
             draft = d,
-            treino = program.treino(d.treino),
+            treino = p.treino(d.treino),
             exercises = d.exercises.map { e ->
-                val planned = program.exercise(e.exerciseId)
+                val planned = p.exercise(e.exerciseId)
                 ExerciseUi(
                     planned = planned,
                     previous = WorkoutRules.previousSets(s, e.exerciseId).orEmpty(),
@@ -147,7 +152,8 @@ class WorkoutViewModel(
 
     fun onToggleSet(exerciseIndex: Int, setIndex: Int) {
         val d = draft.value ?: return
-        when (val r = WorkoutRules.toggleSet(d, exerciseIndex, setIndex, sessions.value, program)) {
+        val p = program.value ?: return
+        when (val r = WorkoutRules.toggleSet(d, exerciseIndex, setIndex, sessions.value, p)) {
             is WorkoutRules.ToggleResult.Missing -> {
                 messages.show(R.string.msg_fill_fields, r.fields.joinToString(" e ") { it.label })
                 events.trySend(WorkoutEvent.FocusField(exerciseIndex, setIndex, r.fields.first()))
@@ -167,7 +173,7 @@ class WorkoutViewModel(
 
     fun onStartRest(exerciseIndex: Int) {
         val e = draft.value?.exercises?.getOrNull(exerciseIndex) ?: return
-        val sec = program.exercise(e.exerciseId)?.restSec ?: 0
+        val sec = program.value?.exercise(e.exerciseId)?.restSec ?: 0
         if (sec > 0) rest.start(sec, e.name)
     }
 
@@ -177,10 +183,11 @@ class WorkoutViewModel(
     /** Salva no histórico; só depois apaga o rascunho (nada se perde se der erro). */
     fun onSave() {
         val d = draft.value ?: return
+        val p = program.value ?: return
         if (flags.value.saving || WorkoutRules.progress(d).done == 0) return
         flags.update { it.copy(saving = true) }
         viewModelScope.launch {
-            val session = WorkoutRules.buildSession(d, now(), program)
+            val session = WorkoutRules.buildSession(d, now(), p)
             val ok = runCatching { sessionRepo.save(session) }.isSuccess
             flags.update { it.copy(saving = false) }
             if (!ok) {
@@ -215,7 +222,7 @@ class WorkoutViewModel(
         fun factory(rest: RestControl) = viewModelFactory {
             initializer {
                 val c = this.container
-                WorkoutViewModel(c.program, c.sessions, c.drafts, c.messages, rest, c.now, c.appScope)
+                WorkoutViewModel(c.programs.program, c.sessions, c.drafts, c.messages, rest, c.now, c.appScope)
             }
         }
     }

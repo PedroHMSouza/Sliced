@@ -53,6 +53,7 @@ fun HistoryScreen(
     onDelete: (String) -> Unit,
     onSelectChartExercise: (String) -> Unit,
     contentPadding: PaddingValues,
+    onShiftMonth: (Int) -> Unit = {},
 ) {
     var openId by rememberSaveable { mutableStateOf(initiallyOpen) }
     var confirmDelete by rememberSaveable { mutableStateOf<String?>(null) }
@@ -65,6 +66,9 @@ fun HistoryScreen(
     ) {
         item(key = "week") { WeekStrip(state.week) }
         item(key = "stats") { Box(Modifier.padding(top = 14.dp)) { StatsRow(state) } }
+        state.month?.let { m ->
+            if (state.items.isNotEmpty()) item(key = "month") { Box(Modifier.padding(top = 14.dp)) { MonthCard(m, state.canNextMonth, onShiftMonth) } }
+        }
         if (state.items.isEmpty() && !state.loading) {
             item(key = "empty") {
                 EmptyState(stringResource(R.string.history_empty_title), stringResource(R.string.history_empty_body), Modifier.padding(top = 14.dp))

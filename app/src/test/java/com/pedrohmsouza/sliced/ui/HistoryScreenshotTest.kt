@@ -20,6 +20,7 @@ import com.pedrohmsouza.sliced.ui.history.HistoryUiState
 import com.pedrohmsouza.sliced.ui.history.HistoryViewModel
 import com.pedrohmsouza.sliced.ui.theme.SlicedTheme
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -34,7 +35,7 @@ class HistoryScreenshotTest {
     @get:Rule val compose = createComposeRule()
 
     private fun state(sessions: List<Session>): HistoryUiState = runBlocking {
-        val vm = HistoryViewModel(StaticProgram, InMemorySessionRepository(sessions), UserMessages())
+        val vm = HistoryViewModel(flowOf(StaticProgram), InMemorySessionRepository(sessions), UserMessages()) { SampleData.today }
         vm.uiState.first { !it.loading }
     }
 

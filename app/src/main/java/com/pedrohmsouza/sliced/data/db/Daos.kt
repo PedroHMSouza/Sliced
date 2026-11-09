@@ -58,3 +58,12 @@ interface DraftDao {
     @Query("DELETE FROM active_workout")
     suspend fun clear()
 }
+
+@Dao
+interface ProgramDao {
+    @Query("SELECT * FROM program WHERE id = 0")
+    fun observe(): Flow<ProgramEntity?>
+
+    @Upsert
+    suspend fun upsert(entity: ProgramEntity)
+}

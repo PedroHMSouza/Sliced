@@ -10,6 +10,7 @@ import com.pedrohmsouza.sliced.ui.UserMessages
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -45,7 +46,7 @@ class WorkoutViewModelTest {
         )
         val rest = FakeRest()
         var clock = 1_000_000L
-        val vm = WorkoutViewModel(StaticProgram, sessions, drafts, UserMessages(), rest, { clock }, scope.backgroundScope)
+        val vm = WorkoutViewModel(flowOf(StaticProgram), sessions, drafts, UserMessages(), rest, { clock }, scope.backgroundScope)
     }
 
     @Test fun checkEmptySet_copiesPreviousValuesAndStartsRest() = runTest(dispatcher) {

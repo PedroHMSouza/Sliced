@@ -58,6 +58,8 @@ import com.pedrohmsouza.sliced.domain.Fmt
 import com.pedrohmsouza.sliced.model.DraftExercise
 import com.pedrohmsouza.sliced.model.FieldKey
 import com.pedrohmsouza.sliced.ui.components.Card
+import com.pedrohmsouza.sliced.ui.components.ExerciseImage
+import com.pedrohmsouza.sliced.ui.components.ExerciseInfoDialog
 import com.pedrohmsouza.sliced.ui.components.GhostButton
 import com.pedrohmsouza.sliced.ui.components.Line
 import com.pedrohmsouza.sliced.ui.components.Plate
@@ -194,7 +196,16 @@ private fun ExerciseCard(
     val fields = e.type.fields
     Card(borderColor = if (allDone) c.ok else c.line) {
         Column(Modifier.padding(start = 12.dp, end = 12.dp, top = 14.dp, bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(Modifier.padding(horizontal = 2.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            var showInfo by remember { mutableStateOf(false) }
+            Row(Modifier.padding(horizontal = 2.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (plan != null) {
+                    ExerciseImage(
+                        plan.media, plan.libraryId,
+                        Modifier
+                            .size(56.dp)
+                            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.a11y_exercise_photo, e.name)) { showInfo = true },
+                    )
+                }
                 Column(Modifier.weight(1f)) {
                     Text(e.name, style = SlicedTheme.type.exerciseName, color = c.fg)
                     if (plan != null) {
@@ -205,6 +216,9 @@ private fun ExerciseCard(
                 if (ui?.canIncrease == true) Tag(stringResource(R.string.tag_increase), background = c.okSoft, color = c.ok)
             }
             plan?.tip?.let { Text(it, style = SlicedTheme.type.small, color = c.muted, modifier = Modifier.padding(horizontal = 2.dp)) }
+            if (showInfo && plan != null) {
+                ExerciseInfoDialog(e.name, plan.media, plan.libraryId, plan.primary, plan.secondary, plan.tip) { showInfo = false }
+            }
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 // Cabeçalho da tabela de séries (oculto para leitores de tela: cada campo tem rótulo próprio).

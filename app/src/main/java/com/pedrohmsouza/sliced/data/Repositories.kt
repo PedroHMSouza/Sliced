@@ -1,6 +1,8 @@
 package com.pedrohmsouza.sliced.data
 
 import com.pedrohmsouza.sliced.model.Draft
+import com.pedrohmsouza.sliced.model.Program
+import com.pedrohmsouza.sliced.model.ProgramSource
 import com.pedrohmsouza.sliced.model.Session
 import kotlinx.coroutines.flow.Flow
 
@@ -25,4 +27,12 @@ interface DraftRepository {
     val draft: Flow<Draft?>
     suspend fun save(draft: Draft)
     suspend fun clear()
+}
+
+/** Ficha de treino. Sem edição salva, devolve a ficha inicial. */
+interface ProgramRepository {
+    val program: Flow<ProgramSource>
+
+    /** Lê a ficha atual, aplica [transform] e grava, uma alteração por vez (nada se perde se duas chegarem juntas). */
+    suspend fun update(transform: (Program) -> Program)
 }

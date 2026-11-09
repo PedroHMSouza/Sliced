@@ -6,6 +6,7 @@ import com.pedrohmsouza.sliced.model.RecordType
 import java.text.NumberFormat
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import java.util.Locale
 
@@ -95,6 +96,21 @@ object Fmt {
     }
 
     fun isoDate(d: LocalDate): String = d.toString() // YYYY-MM-DD
+
+    private val MONTHS = listOf(
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+    )
+
+    /** "Novembro de 2026". */
+    fun monthTitle(m: YearMonth): String = "${MONTHS[m.monthValue - 1]} de ${m.year}"
+
+    /** "seg 02" (dia da semana + dia do mês). */
+    fun weekdayDay(d: LocalDate): String = "${WEEKDAYS[d.dayOfWeek.value - 1]} ${pad(d.dayOfMonth)}"
+
+    /** "09/11 – 15/11". */
+    fun range(start: LocalDate, end: LocalDate): String =
+        "${pad(start.dayOfMonth)}/${pad(start.monthValue)} – ${pad(end.dayOfMonth)}/${pad(end.monthValue)}"
 
     private fun pad(n: Number) = n.toString().padStart(2, '0')
 }

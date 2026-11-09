@@ -38,6 +38,13 @@ data class PlannedExercise(
     val tip: String,
     /** Texto livre do alvo quando "séries × faixa" não descreve bem (ex.: "30 min"). */
     val target: String? = null,
+    /** Exercício do [ExerciseLibrary] de onde vêm as fotos do movimento. */
+    val libraryId: String? = null,
+    /** Foto ou GIF escolhido no celular (arquivo copiado para o app). Tem prioridade sobre o catálogo. */
+    val media: String? = null,
+    /** Músculos trabalhados: cada série conta 1 para os principais e ½ para os secundários. */
+    val primary: List<Muscle> = emptyList(),
+    val secondary: List<Muscle> = emptyList(),
 ) {
     /** Ex.: "3 × 8–12", "2 × 10", ou o [target] explícito. */
     val targetText: String
@@ -56,9 +63,8 @@ data class Treino(
 )
 
 /**
- * Fonte da ficha de treino. No MVP é estática ([StaticProgram]), mas o resto do app só
- * conhece esta interface: quando a ficha puder ser editada pelo app, basta criar uma
- * implementação que lê do Room, sem mexer nas telas nem nas regras.
+ * Fonte da ficha de treino. A ficha inicial é [StaticProgram]; depois de editada no app,
+ * ela vem do Room como um [Program]. As telas e as regras só conhecem esta interface.
  */
 interface ProgramSource {
     val treinos: List<Treino>
@@ -73,3 +79,8 @@ interface ProgramSource {
 
     fun treinoOfExercise(id: String): Treino? = treinos.firstOrNull { t -> t.exercises.any { it.id == id } }
 }
+
+/** Ficha como dado (a editada pelo app). */
+data class Program(override val treinos: List<Treino>) : ProgramSource
+
+fun ProgramSource.toProgram(): Program = this as? Program ?: Program(treinos)

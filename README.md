@@ -1,6 +1,6 @@
 # Sliced · Diário de Treino
 
-App Android nativo para registrar treinos de musculação: carga e repetições por série, timer de descanso que avisa com a tela apagada e histórico com a evolução de cada exercício. Funciona 100% offline e já vem com a ficha de treino (divisão A–E) carregada.
+App Android nativo para registrar treinos de musculação: carga e repetições por série, timer de descanso que avisa com a tela apagada, fotos de cada movimento, histórico com a evolução de cada exercício e um mapa do corpo com os músculos treinados na semana. Funciona 100% offline e já vem com a ficha de treino (divisão A–E) carregada, que você pode editar.
 
 <p>
   <img src="docs/screenshots/home_light.png" width="200" alt="Tela Treinos">
@@ -8,14 +8,22 @@ App Android nativo para registrar treinos de musculação: carga e repetições 
   <img src="docs/screenshots/workout_rest.png" width="200" alt="Timer de descanso">
   <img src="docs/screenshots/history_light.png" width="200" alt="Histórico">
 </p>
+<p>
+  <img src="docs/screenshots/body_light.png" width="200" alt="Mapa do corpo">
+  <img src="docs/screenshots/edit_program.png" width="200" alt="Editar ficha">
+  <img src="docs/screenshots/edit_exercise.png" width="200" alt="Editar exercício">
+</p>
 
 ## Funcionalidades
 
-- **Treinos**: semana atual (Seg–Dom) com o treino feito em cada dia, a ficha A–E com o **próximo** treino já aberto.
+- **Treinos**: semana atual (Seg–Dom) com o treino feito em cada dia, a ficha A–E com o **próximo** treino já aberto. Tocar num exercício mostra a foto do movimento, os músculos e a dica.
+- **Editar ficha**: nome e dia de cada treino; adicionar, remover e reordenar exercícios; mudar séries, faixa de reps, descanso, tipo, dica e músculos. Renomear não quebra o histórico (as séries ficam ligadas ao exercício por um id, não pelo nome).
+- **Fotos dos movimentos**: 76 exercícios com fotos de início e fim do movimento, que se alternam como um GIF. Dá para trocar pela sua própria foto ou GIF da galeria.
 - **Treino em andamento**: tabela de séries com o que você fez da **última vez**; ao tocar ✓, os campos vazios são preenchidos com os valores anteriores e o descanso começa. A etiqueta **Subir carga** aparece quando todas as séries da última vez bateram o topo da faixa (dupla progressão).
 - **Timer de descanso**: barra fixa com −15 / +15 / Pular. Com o celular bloqueado, uma notificação mostra a contagem e toca/vibra no fim.
 - **Nada se perde**: o treino em andamento é salvo a cada toque e sobrevive a fechar o app ou reiniciar o celular.
-- **Histórico**: estatísticas, gráfico da maior carga por treino e detalhes de cada sessão.
+- **Histórico**: dias treinados no mês, calendário com a anilha do treino em cada dia e os dias da semana em que cada treino foi feito; gráfico da maior carga por treino e detalhes de cada sessão.
+- **Corpo**: boneco de frente e de costas que vai sendo pintado conforme você treina cada músculo na semana (cada série conta 1 para os músculos principais e ½ para os secundários), com a lista de séries por músculo e as semanas anteriores.
 - Tema claro e escuro, textos em português, alvos de toque de 48 dp.
 
 ## Instalar no celular
@@ -43,9 +51,11 @@ app/src/main/java/com/pedrohmsouza/sliced/
 
 **Regras em funções puras.** "Próximo treino", "Anterior", "Subir carga" etc. ficam em `WorkoutRules`: recebem dados e devolvem dados, sem Android, sem banco e sem relógio implícito. Por isso são testadas com JUnit simples (`WorkoutRulesTest`).
 
-**Repositórios como interfaces.** Os ViewModels conhecem `SessionRepository` e `DraftRepository`, nunca o Room direto. Os testes usam versões em memória; uma sincronização na nuvem no futuro entraria aqui sem mexer nas telas. A ficha também é uma interface (`ProgramSource`): hoje é fixa (`StaticProgram`), amanhã pode vir do banco.
+**Repositórios como interfaces.** Os ViewModels conhecem `SessionRepository`, `DraftRepository` e `ProgramRepository`, nunca o Room direto. Os testes usam versões em memória; uma sincronização na nuvem no futuro entraria aqui sem mexer nas telas. A ficha é lida como `ProgramSource`: sem edição salva, é a inicial (`StaticProgram`); depois de editada, vem do banco.
 
-**Room.** O histórico fica em três tabelas: `sessions` → `session_exercises` → `session_sets`, com `ON DELETE CASCADE`. Uma sessão é gravada numa transação: ou entra inteira, ou não entra. O treino em andamento é uma linha só com o estado em JSON. Ele muda a cada toque e só vira histórico ao finalizar, então não vale ter tabelas próprias. O esquema de cada versão fica em `app/schemas/` para escrever migrações quando o banco mudar.
+**Room.** O histórico fica em três tabelas: `sessions` → `session_exercises` → `session_sets`, com `ON DELETE CASCADE`. Uma sessão é gravada numa transação: ou entra inteira, ou não entra. O treino em andamento é uma linha só com o estado em JSON. Ele muda a cada toque e só vira histórico ao finalizar, então não vale ter tabelas próprias. A ficha editada segue a mesma ideia (tabela `program`, uma linha em JSON). O esquema de cada versão fica em `app/schemas/`; a versão 2 só acrescentou a tabela da ficha, com migração automática (`AutoMigration`) testada a partir de um banco da versão 1 com histórico.
+
+**Fotos.** O catálogo (`ExerciseLibrary`) vem do [free-exercise-db](https://github.com/yuhonas/free-exercise-db), de domínio público (Unlicense): duas fotos por exercício em `assets/exercises/`, convertidas para WebP (~2,7 MB no total), e os músculos de cada um. Fotos e GIFs escolhidos na galeria são copiados para a pasta do app, porque o endereço que o seletor de fotos devolve é temporário. O Coil carrega as imagens e anima os GIFs; como só lê arquivos locais, o app continua sem permissão de internet.
 
 **Injeção de dependência manual (sem Hilt).** O app tem um banco, dois repositórios e um timer, então `AppContainer` monta tudo à mão e deixa explícito quem cria o quê. O Hilt faz o mesmo gerando código a partir de anotações, e compensa quando o grafo cresce. Migrar é direto: cada `val` do container vira um `@Provides`.
 
@@ -64,7 +74,10 @@ app/src/main/java/com/pedrohmsouza/sliced/
 
 Todos os testes rodam na JVM, sem emulador:
 
-- `WorkoutRulesTest`, `FmtTest`: cada regra de negócio da especificação.
+- `WorkoutRulesTest`, `FmtTest`: cada regra de negócio da especificação, incluindo o calendário do mês.
+- `ProgramRulesTest`, `BodyRulesTest`: edição da ficha e contagem de séries por músculo.
+- `ExerciseEditViewModelTest`: criar, editar e remover exercícios da ficha.
+- `ProgramRepositoryTest`: a ficha no Room e a migração do banco 1 → 2 sem perder o histórico.
 - `RestTimerTest`: o timer com tempo virtual (fim, −15/+15, alarme duplicado, segundo plano).
 - `WorkoutViewModelTest`: o fluxo marcar série → salvar → limpar rascunho.
 - `RoomRepositoriesTest`: o Room de verdade (SQLite em memória via Robolectric).
@@ -76,7 +89,7 @@ Todos os testes rodam na JVM, sem emulador:
 
 ## Stack
 
-Kotlin · Jetpack Compose + Material 3 · Navigation Compose (rotas type-safe) · Room · kotlinx.serialization · Coroutines/Flow · AGP 9 · minSdk 26 · targetSdk 36 (Android 16) · JUnit + Robolectric + Roborazzi.
+Kotlin · Jetpack Compose + Material 3 · Navigation Compose (rotas type-safe) · Room · Coil 3 · kotlinx.serialization · Coroutines/Flow · AGP 9 · minSdk 26 · targetSdk 36 (Android 16) · JUnit + Robolectric + Roborazzi.
 
 ## Licenças
 

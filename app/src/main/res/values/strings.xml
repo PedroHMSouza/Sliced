@@ -3,6 +3,7 @@
     <string name="app_name">Diário de Treino</string>
     <string name="tab_treinos">Treinos</string>
     <string name="tab_historico">Histórico</string>
+    <string name="tab_corpo">Corpo</string>
 
     <!-- Semana -->
     <string name="week_title">Esta semana</string>
@@ -11,6 +12,7 @@
 
     <!-- Treinos -->
     <string name="home_program">Sua ficha</string>
+    <string name="home_edit">Editar</string>
     <string name="home_in_progress">Treino %1$s em andamento</string>
     <string name="home_started_at">Começou às %1$s</string>
     <string name="home_start">Começar Treino %1$s</string>
@@ -45,7 +47,7 @@
     <string name="col_done">Feito</string>
 
     <!-- Histórico -->
-    <string name="stat_month">No mês</string>
+    <string name="stat_month">Dias no mês</string>
     <string name="stat_total">Total</string>
     <string name="stat_avg">Tempo médio</string>
     <string name="history_list_title">Treinos registrados</string>
@@ -106,7 +108,95 @@
     <string name="msg_deleted">Treino apagado</string>
     <string name="msg_delete_failed">Não foi possível apagar agora. Tente de novo.</string>
 
+    <!-- Mês -->
+    <plurals name="days_trained">
+        <item quantity="one">%d dia treinado</item>
+        <item quantity="many">%d dias treinados</item>
+        <item quantity="other">%d dias treinados</item>
+    </plurals>
+    <plurals name="workouts_count">
+        <item quantity="one">%d treino</item>
+        <item quantity="many">%d treinos</item>
+        <item quantity="other">%d treinos</item>
+    </plurals>
+    <string name="month_by_treino">Dias da semana de cada treino</string>
+
+    <!-- Corpo -->
+    <string name="body_this_week">Esta semana</string>
+    <string name="body_week">Semana</string>
+    <string name="body_front">Frente</string>
+    <string name="body_back">Costas</string>
+    <string name="body_legend">Séries na semana</string>
+    <string name="body_sets_title">Séries por músculo</string>
+    <string name="body_empty">Nenhum treino nesta semana. O boneco vai sendo pintado conforme você finaliza os treinos.</string>
+    <string name="body_untrained">Ainda sem séries: %1$s.</string>
+    <string name="body_note">Cada série conta 1 para os músculos principais do exercício e ½ para os secundários. Entre 10 e 20 séries por semana é o alvo comum para cada músculo.</string>
+    <string name="body_a11y">Músculos treinados na semana, em séries: %1$s</string>
+    <string name="body_a11y_none">Nenhum músculo treinado nesta semana</string>
+    <plurals name="sets_short">
+        <item quantity="one">%s série</item>
+        <item quantity="many">%s séries</item>
+        <item quantity="other">%s séries</item>
+    </plurals>
+
+    <!-- Fotos dos exercícios -->
+    <string name="muscles_primary">Músculos principais</string>
+    <string name="muscles_secondary">Secundários</string>
+    <string name="media_credit">Fotos: free-exercise-db (domínio público)</string>
+    <string name="action_close">Fechar</string>
+    <string name="a11y_exercise_photo">Ver o movimento de %1$s</string>
+
+    <!-- Editar ficha -->
+    <string name="edit_program_title">Editar ficha</string>
+    <string name="edit_treino_name">Nome do treino</string>
+    <string name="edit_treino_day">Dia da semana</string>
+    <string name="edit_exercises">Exercícios</string>
+    <string name="edit_add_exercise">+ Adicionar exercício</string>
+    <string name="edit_note">As mudanças valem para os próximos treinos; o histórico não muda. Um treino em andamento continua como começou.</string>
+    <string name="edit_move_up">Subir %1$s</string>
+    <string name="edit_move_down">Descer %1$s</string>
+    <string name="edit_no_exercises">Nenhum exercício neste treino ainda.</string>
+    <string name="edit_back">Ficha</string>
+    <string name="edit_exercise_title">Editar exercício</string>
+    <string name="new_exercise_title">Novo exercício</string>
+    <string name="edit_save">Salvar</string>
+    <string name="edit_media_library">Catálogo</string>
+    <string name="edit_media_phone">Foto/GIF do celular</string>
+    <string name="edit_media_remove">Remover minha foto</string>
+    <string name="edit_media_hint">Escolha um exercício do catálogo para usar as fotos dele, ou uma foto ou GIF do seu celular.</string>
+    <string name="edit_name">Nome do exercício</string>
+    <string name="edit_type">Tipo de registro</string>
+    <string name="type_wr">Carga × reps</string>
+    <string name="type_r">Repetições</string>
+    <string name="type_s">Tempo</string>
+    <string name="type_wm">Carga × metros</string>
+    <string name="type_cardio">Cardio</string>
+    <string name="edit_sets">Séries</string>
+    <string name="edit_reps">Faixa de repetições</string>
+    <string name="edit_reps_from">de</string>
+    <string name="edit_reps_to">até</string>
+    <string name="edit_rest">Descanso</string>
+    <string name="edit_target">Alvo (opcional)</string>
+    <string name="edit_target_hint">Ex.: 2 × 10 por perna</string>
+    <string name="edit_tip">Dica de execução</string>
+    <string name="edit_delete">Remover da ficha</string>
+    <string name="delete_exercise_title">Remover da ficha?</string>
+    <string name="delete_exercise_text">%1$s sai do Treino %2$s. O histórico dele continua salvo.</string>
+    <string name="delete_exercise_confirm">Remover</string>
+    <string name="library_title">Catálogo de exercícios</string>
+    <string name="library_search">Buscar exercício</string>
+    <string name="library_empty">Nenhum exercício encontrado. Feche e digite o nome para criar um exercício próprio.</string>
+    <string name="msg_exercise_saved">Exercício salvo na ficha</string>
+    <string name="msg_exercise_removed">Exercício removido da ficha</string>
+    <string name="msg_name_required">Dê um nome ao exercício</string>
+    <string name="msg_media_failed">Não deu para abrir essa imagem</string>
+    <string name="msg_program_save_failed">Não foi possível salvar a ficha agora. Tente de novo.</string>
+
     <!-- Acessibilidade -->
+    <string name="a11y_previous">Anterior</string>
+    <string name="a11y_next">Próximo</string>
+    <string name="a11y_increase">Mais</string>
+    <string name="a11y_decrease">Menos</string>
     <string name="a11y_minus15">Menos 15 segundos</string>
     <string name="a11y_plus15">Mais 15 segundos</string>
     <string name="a11y_set_done" tools:ignore="PluralsCandidate">Série %1$d feita</string>

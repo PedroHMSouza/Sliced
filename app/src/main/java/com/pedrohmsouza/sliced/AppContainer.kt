@@ -1,6 +1,10 @@
 package com.pedrohmsouza.sliced
 
 import android.content.Context
+import com.pedrohmsouza.sliced.ui.UserMessages
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import com.pedrohmsouza.sliced.data.DraftRepository
 import com.pedrohmsouza.sliced.data.RoomDraftRepository
 import com.pedrohmsouza.sliced.data.RoomSessionRepository
@@ -27,4 +31,8 @@ class AppContainer(context: Context) {
     val sessions: SessionRepository by lazy { RoomSessionRepository(database.sessionDao()) }
     val drafts: DraftRepository by lazy { RoomDraftRepository(database.draftDao()) }
     val now: () -> Long = System::currentTimeMillis
+    val messages = UserMessages()
+
+    /** Escopo que vive o app inteiro: para gravações que não podem ser canceladas ao sair da tela. */
+    val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 }

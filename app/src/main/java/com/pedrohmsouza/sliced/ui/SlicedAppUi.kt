@@ -6,41 +6,82 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.pedrohmsouza.sliced.ui.components.CenteredColumn
-import com.pedrohmsouza.sliced.ui.components.ScreenPadding
-import com.pedrohmsouza.sliced.ui.home.HomeScreen
-import com.pedrohmsouza.sliced.ui.home.HomeViewModel
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.pedrohmsouza.sliced.SlicedApp
+import com.pedrohmsouza.sliced.ui.components.CenteredColumn
 import com.pedrohmsouza.sliced.ui.components.MainTab
 import com.pedrohmsouza.sliced.ui.components.MainTopBar
+import com.pedrohmsouza.sliced.ui.components.ScreenPadding
+import com.pedrohmsouza.sliced.ui.home.HomeScreen
+import com.pedrohmsouza.sliced.ui.home.HomeViewModel
 import com.pedrohmsouza.sliced.ui.theme.SlicedTheme
+import com.pedrohmsouza.sliced.ui.workout.KeepScreenOn
+import com.pedrohmsouza.sliced.ui.workout.RestControl
+import com.pedrohmsouza.sliced.ui.workout.WorkoutEvent
+import com.pedrohmsouza.sliced.ui.workout.WorkoutScreen
+import com.pedrohmsouza.sliced.ui.workout.WorkoutTopBar
+import com.pedrohmsouza.sliced.ui.workout.WorkoutViewModel
+import com.pedrohmsouza.sliced.ui.workout.asActions
+import kotlinx.coroutines.flow.first
 
 /**
- * Raiz da UI: um Scaffold global (onde depois entram a barra do descanso e os avisos)
- * e o NavHost com as três telas.
+ * Raiz da UI: um Scaffold global (barra do descanso embaixo e avisos/snackbar) e o
+ * NavHost com as três telas. Cada tela desenha a própria barra superior.
  */
 @Composable
 fun SlicedAppUi() {
+    val context = LocalContext.current
+    val container = remember { (context.applicationContext as SlicedApp).container }
     val nav = rememberNavController()
-    val goTab: (MainTab) -> Unit = { tab ->
-        val route: Any = if (tab == MainTab.Treinos) HomeRoute else HistoryRoute()
-        nav.navigate(route) {
-            popUpTo(HomeRoute) { saveState = true }
-            launchSingleTop = true
-            restoreState = true
+    val snackbar = remember { SnackbarHostState() }
+
+    // Avisos vindos dos ViewModels (ex.: "Treino A salvo · 52 min").
+    LaunchedEffect(Unit) {
+        container.messages.messages.collect { m ->
+            snackbar.currentSnackbarData?.dismiss()
+            snackbar.showSnackbar(context.getString(m.res, *m.args.toTypedArray()))
         }
     }
-    Scaffold(containerColor = SlicedTheme.colors.bg) { inner ->
+
+    // Se o app foi fechado no meio de um treino, abre direto nele (só na primeira composição).
+    var resumed by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (!resumed) {
+            resumed = true
+            if (container.drafts.draft.first() != null) nav.navigate(WorkoutRoute)
+        }
+    }
+
+    val rest = remember {
+        object : RestControl {
+            override fun start(seconds: Int, label: String) {}
+            override fun stop() {}
+        }
+    }
+
+    Scaffold(
+        containerColor = SlicedTheme.colors.bg,
+        snackbarHost = { SnackbarHost(snackbar) },
+    ) { inner ->
         NavHost(
             navController = nav,
             startDestination = HomeRoute,
@@ -50,26 +91,70 @@ fun SlicedAppUi() {
                 val vm: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
                 val state by vm.uiState.collectAsStateWithLifecycle()
                 Column(Modifier.fillMaxSize()) {
-                    MainTopBar(MainTab.Treinos, goTab)
+                    MainTopBar(MainTab.Treinos) { nav.goTab(it) }
                     CenteredColumn {
                         HomeScreen(
                             state = state,
-                            onStart = { id -> vm.start(id) { nav.navigate(WorkoutRoute) } },
-                            onContinue = { nav.navigate(WorkoutRoute) },
+                            onStart = { id -> vm.start(id) { nav.navigate(WorkoutRoute) { launchSingleTop = true } } },
+                            onContinue = { nav.navigate(WorkoutRoute) { launchSingleTop = true } },
                             contentPadding = ScreenPadding,
                         )
                     }
                 }
             }
             composable<WorkoutRoute> {
-                Box(Modifier.padding(16.dp)) { Text("Treino em andamento") }
+                val vm: WorkoutViewModel = viewModel(factory = WorkoutViewModel.factory(rest))
+                val state by vm.uiState.collectAsStateWithLifecycle()
+                KeepScreenOn()
+                LaunchedEffect(state.loading, state.draft) {
+                    // Sem treino em andamento (ex.: abriu por um atalho velho): volta para Treinos.
+                    if (!state.loading && state.draft == null) nav.leaveWorkout(null)
+                }
+                // Um único coletor de eventos (um Channel entrega cada evento a um só coletor).
+                var focusRequest by remember { mutableStateOf<WorkoutEvent.FocusField?>(null) }
+                LaunchedEffect(vm) {
+                    vm.eventFlow.collect { e ->
+                        when (e) {
+                            is WorkoutEvent.Saved -> nav.leaveWorkout(e.sessionId)
+                            WorkoutEvent.Closed -> nav.leaveWorkout(null)
+                            is WorkoutEvent.FocusField -> focusRequest = e
+                        }
+                    }
+                }
+                Column(Modifier.fillMaxSize()) {
+                    if (state.draft == null) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    } else {
+                        WorkoutTopBar(state, onBack = { nav.leaveWorkout(null) }, onFinish = vm::onOpenFinish, now = container.now)
+                        CenteredColumn {
+                            WorkoutScreen(state, remember(vm) { vm.asActions() }, focusRequest, ScreenPadding)
+                        }
+                    }
+                }
             }
             composable<HistoryRoute> {
                 Column(Modifier.fillMaxSize()) {
-                    MainTopBar(MainTab.Historico, goTab)
-                    Box(Modifier.padding(16.dp)) { Text("Histórico") }
+                    MainTopBar(MainTab.Historico) { nav.goTab(it) }
                 }
             }
         }
+    }
+}
+
+private fun NavHostController.goTab(tab: MainTab) {
+    val route: Any = if (tab == MainTab.Treinos) HomeRoute else HistoryRoute()
+    navigate(route) {
+        popUpTo(HomeRoute) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
+
+/** Sai do treino: para o Histórico (com a sessão salva aberta) ou de volta para Treinos. */
+private fun NavHostController.leaveWorkout(savedSessionId: String?) {
+    if (savedSessionId != null) {
+        navigate(HistoryRoute(savedSessionId)) { popUpTo(HomeRoute) }
+    } else if (!popBackStack(HomeRoute, inclusive = false)) {
+        navigate(HomeRoute) { popUpTo(0) }
     }
 }

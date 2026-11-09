@@ -25,7 +25,30 @@
         <item quantity="other">%d exercícios</item>
     </plurals>
 
+    <!-- Treino em andamento -->
+    <string name="workout_back">Treinos</string>
+    <string name="workout_finish">Finalizar</string>
+    <string name="workout_finish_x">Finalizar Treino %1$s</string>
+    <string name="workout_progress">%1$d de %2$d séries feitas. Toque em ✓ para registrar a série e iniciar o descanso; campos vazios usam os valores da última vez.</string>
+    <string name="workout_add_set">+ Série</string>
+    <string name="workout_remove_set">− Série</string>
+    <string name="workout_rest">Descanso %1$d s</string>
+    <string name="workout_note_hint">Anotação (ex.: banco no furo 4, pegada aberta)</string>
+    <string name="tag_increase">Subir carga</string>
+    <string name="col_set">Nº</string>
+    <string name="col_previous">Anterior</string>
+    <string name="col_done">Feito</string>
+
+    <!-- Avisos -->
+    <string name="msg_fill_fields">Preencha %1$s desta série</string>
+    <string name="msg_saved">Treino %1$s salvo · %2$d min</string>
+    <string name="msg_save_failed">Não foi possível salvar agora. Seu treino continua aqui; tente de novo em instantes.</string>
+    <string name="msg_discarded">Treino descartado</string>
+
     <!-- Acessibilidade -->
+    <string name="a11y_set_done">Série %1$d feita</string>
+    <string name="a11y_done">marcada</string>
+    <string name="a11y_not_done">não marcada</string>
     <string name="a11y_expanded">aberto</string>
     <string name="a11y_collapsed">fechado</string>
 </resources>

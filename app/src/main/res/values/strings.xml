@@ -39,6 +39,19 @@
     <string name="col_previous">Anterior</string>
     <string name="col_done">Feito</string>
 
+    <!-- Histórico -->
+    <string name="stat_month">No mês</string>
+    <string name="stat_total">Total</string>
+    <string name="stat_avg">Tempo médio</string>
+    <string name="history_list_title">Treinos registrados</string>
+    <string name="history_empty_title">Nenhum treino salvo ainda</string>
+    <string name="history_empty_body">Comece pelo treino marcado como Próximo na aba Treinos. Cada treino finalizado aparece aqui com a carga e as repetições de cada série, e a evolução de cada exercício vira um gráfico.</string>
+    <string name="history_no_sets">sem séries</string>
+    <string name="history_delete">Apagar este treino</string>
+    <string name="delete_title">Apagar este treino?</string>
+    <string name="delete_text">O treino %2$s de %1$s sai do histórico e do gráfico. Não dá para desfazer.</string>
+    <string name="delete_confirm">Apagar</string>
+
     <!-- Finalizar -->
     <string name="finish_title">Finalizar Treino %1$s</string>
     <string name="finish_duration">Duração</string>
@@ -77,6 +90,8 @@
     <string name="msg_saved">Treino %1$s salvo · %2$d min</string>
     <string name="msg_save_failed">Não foi possível salvar agora. Seu treino continua aqui; tente de novo em instantes.</string>
     <string name="msg_discarded">Treino descartado</string>
+    <string name="msg_deleted">Treino apagado</string>
+    <string name="msg_delete_failed">Não foi possível apagar agora. Tente de novo.</string>
 
     <!-- Acessibilidade -->
     <string name="a11y_minus15">Menos 15 segundos</string>

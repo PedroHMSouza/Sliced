@@ -29,6 +29,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.pedrohmsouza.sliced.ui.history.HistoryScreen
+import com.pedrohmsouza.sliced.ui.history.HistoryViewModel
 import com.pedrohmsouza.sliced.SlicedApp
 import com.pedrohmsouza.sliced.ui.components.CenteredColumn
 import com.pedrohmsouza.sliced.ui.components.MainTab
@@ -148,9 +151,15 @@ fun SlicedAppUi() {
                     }
                 }
             }
-            composable<HistoryRoute> {
+            composable<HistoryRoute> { entry ->
+                val route = entry.toRoute<HistoryRoute>()
+                val vm: HistoryViewModel = viewModel(factory = HistoryViewModel.Factory)
+                val state by vm.uiState.collectAsStateWithLifecycle()
                 Column(Modifier.fillMaxSize()) {
                     MainTopBar(MainTab.Historico) { nav.goTab(it) }
+                    CenteredColumn {
+                        HistoryScreen(state, route.openSessionId, vm::delete, vm::selectChartExercise, ScreenPadding)
+                    }
                 }
             }
         }

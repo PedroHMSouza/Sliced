@@ -2,9 +2,10 @@ package com.pedrohmsouza.sliced
 
 import android.content.Context
 import com.pedrohmsouza.sliced.data.DraftRepository
-import com.pedrohmsouza.sliced.data.InMemoryDraftRepository
-import com.pedrohmsouza.sliced.data.InMemorySessionRepository
+import com.pedrohmsouza.sliced.data.RoomDraftRepository
+import com.pedrohmsouza.sliced.data.RoomSessionRepository
 import com.pedrohmsouza.sliced.data.SessionRepository
+import com.pedrohmsouza.sliced.data.db.AppDatabase
 import com.pedrohmsouza.sliced.model.ProgramSource
 import com.pedrohmsouza.sliced.model.StaticProgram
 
@@ -21,7 +22,9 @@ import com.pedrohmsouza.sliced.model.StaticProgram
  */
 class AppContainer(context: Context) {
     val program: ProgramSource = StaticProgram
-    val sessions: SessionRepository = InMemorySessionRepository()
-    val drafts: DraftRepository = InMemoryDraftRepository()
+    // `by lazy`: o banco só é aberto na primeira vez em que alguém precisar dele.
+    val database: AppDatabase by lazy { AppDatabase.create(context) }
+    val sessions: SessionRepository by lazy { RoomSessionRepository(database.sessionDao()) }
+    val drafts: DraftRepository by lazy { RoomDraftRepository(database.draftDao()) }
     val now: () -> Long = System::currentTimeMillis
 }

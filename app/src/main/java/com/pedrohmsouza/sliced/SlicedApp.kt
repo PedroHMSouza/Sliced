@@ -7,4 +7,12 @@ import android.app.Application
  * qualquer Activity. É o lugar natural para guardar objetos que vivem o app inteiro
  * (banco de dados, repositórios, timer) — ver [AppContainer].
  */
-class SlicedApp : Application()
+class SlicedApp : Application() {
+    lateinit var container: AppContainer
+        private set
+
+    override fun onCreate() {
+        super.onCreate()
+        container = AppContainer(this)
+    }
+}

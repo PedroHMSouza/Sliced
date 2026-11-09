@@ -11,9 +11,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -47,30 +51,45 @@ fun MainTopBar(selected: MainTab, onSelect: (MainTab) -> Unit) {
                     style = SlicedTheme.type.brand,
                     color = c.fg,
                     modifier = Modifier.padding(start = 8.dp),
-                    maxLines = 1,
+                    maxLines = 2,
                 )
             }
-            SingleChoiceSegmentedButtonRow {
-                val tabs = listOf(MainTab.Treinos to R.string.tab_treinos, MainTab.Historico to R.string.tab_historico)
-                tabs.forEachIndexed { i, (tab, label) ->
-                    SegmentedButton(
-                        selected = selected == tab,
-                        onClick = { onSelect(tab) },
-                        shape = SegmentedButtonDefaults.itemShape(i, tabs.size),
-                        icon = {},
-                        colors = SegmentedButtonDefaults.colors(
-                            activeContainerColor = c.surface,
-                            activeContentColor = c.fg,
-                            inactiveContainerColor = c.soft,
-                            inactiveContentColor = c.muted,
-                            activeBorderColor = c.line,
-                            inactiveBorderColor = c.line,
-                        ),
-                    ) { Text(stringResource(label), style = SlicedTheme.type.button.copy(fontSize = SlicedTheme.type.small.fontSize)) }
-                }
-            }
+            Segmented(selected, onSelect)
         }
         HorizontalDivider(color = c.line)
+    }
+}
+
+/** Seletor compacto (o SegmentedButton do Material ocupa espaço demais ao lado do título). */
+@Composable
+private fun Segmented(selected: MainTab, onSelect: (MainTab) -> Unit) {
+    val c = SlicedTheme.colors
+    val tabs = listOf(MainTab.Treinos to R.string.tab_treinos, MainTab.Historico to R.string.tab_historico)
+    Row(
+        Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(c.soft)
+            .padding(3.dp)
+            .selectableGroup(),
+    ) {
+        tabs.forEach { (tab, label) ->
+            val on = tab == selected
+            Box(
+                Modifier
+                    .heightIn(min = 40.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .then(if (on) Modifier.shadow(1.dp, RoundedCornerShape(8.dp)).background(c.surface) else Modifier)
+                    .selectable(selected = on, role = Role.Tab, onClick = { onSelect(tab) })
+                    .padding(horizontal = 14.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    stringResource(label),
+                    style = SlicedTheme.type.button.copy(fontSize = 15.sp),
+                    color = if (on) c.fg else c.muted,
+                )
+            }
+        }
     }
 }
 

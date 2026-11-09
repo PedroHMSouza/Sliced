@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
+    // Roborazzi: tira "screenshots" das telas Compose na JVM (Robolectric), sem emulador.
+    alias(libs.plugins.roborazzi)
 }
 
 android {
@@ -58,6 +60,20 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+        unitTests.isIncludeAndroidResources = true
+        unitTests.all { test ->
+            // O Robolectric do Android 16 acessa internals do JDK 21.
+            test.jvmArgs(
+                "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
+                "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+                "--add-opens=java.base/java.io=ALL-UNNAMED",
+            )
+            // Opcional: espelho do Maven Central para o Robolectric baixar o android-all
+            // (defina robolectricRepoUrl em ~/.gradle/gradle.properties se precisar).
+            providers.gradleProperty("robolectricRepoUrl").orNull?.let {
+                test.systemProperty("robolectric.dependency.repo.url", it)
+            }
+        }
     }
 }
 
@@ -91,4 +107,13 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.junit.rule)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

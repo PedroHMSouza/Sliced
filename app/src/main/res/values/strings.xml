@@ -3,4 +3,29 @@
     <string name="app_name">Diário de Treino</string>
     <string name="tab_treinos">Treinos</string>
     <string name="tab_historico">Histórico</string>
+
+    <!-- Semana -->
+    <string name="week_title">Esta semana</string>
+    <string name="week_of_5">de 5 treinos</string>
+    <string name="week_day_done">%1$s: Treino %2$s</string>
+
+    <!-- Treinos -->
+    <string name="home_program">Sua ficha</string>
+    <string name="home_in_progress">Treino %1$s em andamento</string>
+    <string name="home_started_at">Começou às %1$s</string>
+    <string name="home_start">Começar Treino %1$s</string>
+    <string name="home_continue_x">Continuar Treino %1$s</string>
+    <string name="home_blocked">Finalize ou descarte o Treino %1$s em andamento para começar este.</string>
+    <string name="tag_next">Próximo</string>
+    <string name="action_continue">Continuar</string>
+    <string name="store_local">Seus treinos ficam salvos neste celular e funcionam sem internet.</string>
+    <plurals name="exercises_count">
+        <item quantity="one">%d exercício</item>
+        <item quantity="many">%d exercícios</item>
+        <item quantity="other">%d exercícios</item>
+    </plurals>
+
+    <!-- Acessibilidade -->
+    <string name="a11y_expanded">aberto</string>
+    <string name="a11y_collapsed">fechado</string>
 </resources>

@@ -9,6 +9,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pedrohmsouza.sliced.ui.components.CenteredColumn
+import com.pedrohmsouza.sliced.ui.components.ScreenPadding
+import com.pedrohmsouza.sliced.ui.home.HomeScreen
+import com.pedrohmsouza.sliced.ui.home.HomeViewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
@@ -40,10 +47,22 @@ fun SlicedAppUi() {
             modifier = Modifier.padding(inner).consumeWindowInsets(inner).imePadding(),
         ) {
             composable<HomeRoute> {
+                val vm: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
+                val state by vm.uiState.collectAsStateWithLifecycle()
                 Column(Modifier.fillMaxSize()) {
                     MainTopBar(MainTab.Treinos, goTab)
-                    Box(Modifier.padding(16.dp)) { Text("Treinos") }
+                    CenteredColumn {
+                        HomeScreen(
+                            state = state,
+                            onStart = { id -> vm.start(id) { nav.navigate(WorkoutRoute) } },
+                            onContinue = { nav.navigate(WorkoutRoute) },
+                            contentPadding = ScreenPadding,
+                        )
+                    }
                 }
+            }
+            composable<WorkoutRoute> {
+                Box(Modifier.padding(16.dp)) { Text("Treino em andamento") }
             }
             composable<HistoryRoute> {
                 Column(Modifier.fillMaxSize()) {

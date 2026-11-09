@@ -52,6 +52,14 @@
     <string name="delete_text">O treino %2$s de %1$s sai do histórico e do gráfico. Não dá para desfazer.</string>
     <string name="delete_confirm">Apagar</string>
 
+    <string name="chart_title">Evolução da carga</string>
+    <string name="chart_picker">Exercício do gráfico: %1$s</string>
+    <string name="chart_tap_hint">Toque num ponto para ver a data e a série.</string>
+    <string name="chart_best">Maior carga:</string>
+    <string name="chart_delta">Variação desde o primeiro registro:</string>
+    <string name="chart_need_more">Registre mais um treino com este exercício para ver a linha de evolução.</string>
+    <string name="chart_a11y">Maior carga por treino, de %1$s a %2$s kg, em %3$d treinos</string>
+
     <!-- Finalizar -->
     <string name="finish_title">Finalizar Treino %1$s</string>
     <string name="finish_duration">Duração</string>

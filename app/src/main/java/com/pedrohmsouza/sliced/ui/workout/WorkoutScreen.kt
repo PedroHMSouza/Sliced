@@ -240,7 +240,7 @@ private fun ExerciseCard(
                                 NumberField(
                                     value = s.value(f),
                                     placeholder = prev?.get(f)?.let(Fmt::number).orEmpty(),
-                                    decimal = f.decimal,
+                                    key = f,
                                     done = s.done,
                                     label = "${e.name}, série ${si + 1}, ${f.label}",
                                     last = fi == fields.lastIndex,
@@ -304,7 +304,7 @@ private fun HeaderText(text: String, align: TextAlign) {
 private fun NumberField(
     value: String,
     placeholder: String,
-    decimal: Boolean,
+    key: FieldKey,
     done: Boolean,
     label: String,
     last: Boolean,
@@ -317,12 +317,12 @@ private fun NumberField(
     val shape = RoundedCornerShape(9.dp)
     BasicTextField(
         value = text,
-        onValueChange = { raw -> text = raw.filter { it.isDigit() || (decimal && (it == ',' || it == '.')) }; onChange(text) },
+        onValueChange = { raw -> text = Fmt.sanitize(raw, key); onChange(text) },
         singleLine = true,
         textStyle = SlicedTheme.type.input.copy(color = c.fg, textAlign = TextAlign.Center),
         cursorBrush = SolidColor(c.fg),
         keyboardOptions = KeyboardOptions(
-            keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Number,
+            keyboardType = if (key.decimal) KeyboardType.Decimal else KeyboardType.Number,
             imeAction = if (last) ImeAction.Done else ImeAction.Next,
         ),
         modifier = modifier

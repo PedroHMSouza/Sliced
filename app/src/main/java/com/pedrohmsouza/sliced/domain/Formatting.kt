@@ -34,10 +34,13 @@ object Fmt {
         return f.format(n.toDouble())
     }
 
-    /** Limpa o que foi digitado: só dígitos (e vírgula/ponto nos campos decimais). */
+    /**
+     * Limpa o que foi digitado: só dígitos (e vírgula/ponto nos campos decimais).
+     * Em campos inteiros, para no separador: "12,5" vira "12" (e não "125").
+     */
     fun sanitize(raw: String, key: FieldKey): String =
         if (key.decimal) raw.filter { it.isDigit() || it == ',' || it == '.' }.take(7)
-        else raw.filter { it.isDigit() }.take(5)
+        else raw.takeWhile { it != ',' && it != '.' }.filter { it.isDigit() }.take(5)
 
     /** Série no formato longo: "40 kg × 12", "45 s", "30 min · 8%". */
     fun set(type: RecordType, s: LoggedSet?): String {

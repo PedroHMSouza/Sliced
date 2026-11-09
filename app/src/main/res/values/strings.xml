@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Diário de Treino</string>
+    <string name="tab_treinos">Treinos</string>
+    <string name="tab_historico">Histórico</string>
+</resources>

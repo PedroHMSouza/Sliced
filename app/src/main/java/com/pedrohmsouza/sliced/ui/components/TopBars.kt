@@ -11,6 +11,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.ui.text.style.TextOverflow
+import com.pedrohmsouza.sliced.ui.icons.SlicedIcons
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,9 +33,9 @@ import androidx.compose.ui.unit.dp
 import com.pedrohmsouza.sliced.R
 import com.pedrohmsouza.sliced.ui.theme.SlicedTheme
 
-enum class MainTab { Treinos, Historico }
+enum class MainTab { Treinos, Historico, Corpo }
 
-/** Barra superior das telas principais: marca + seletor Treinos/Histórico. */
+/** Barra superior das telas principais: marca + seletor Treinos/Histórico/Corpo. */
 @Composable
 fun MainTopBar(selected: MainTab, onSelect: (MainTab) -> Unit) {
     val c = SlicedTheme.colors
@@ -64,7 +68,11 @@ fun MainTopBar(selected: MainTab, onSelect: (MainTab) -> Unit) {
 @Composable
 private fun Segmented(selected: MainTab, onSelect: (MainTab) -> Unit) {
     val c = SlicedTheme.colors
-    val tabs = listOf(MainTab.Treinos to R.string.tab_treinos, MainTab.Historico to R.string.tab_historico)
+    val tabs = listOf(
+        MainTab.Treinos to R.string.tab_treinos,
+        MainTab.Historico to R.string.tab_historico,
+        MainTab.Corpo to R.string.tab_corpo,
+    )
     Row(
         Modifier
             .clip(RoundedCornerShape(10.dp))
@@ -80,7 +88,7 @@ private fun Segmented(selected: MainTab, onSelect: (MainTab) -> Unit) {
                     .clip(RoundedCornerShape(8.dp))
                     .then(if (on) Modifier.shadow(1.dp, RoundedCornerShape(8.dp)).background(c.surface) else Modifier)
                     .selectable(selected = on, role = Role.Tab, onClick = { onSelect(tab) })
-                    .padding(horizontal = 14.dp),
+                    .padding(horizontal = 11.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -104,5 +112,26 @@ private fun PlateMark() {
             drawCircle(red, radius = s / 2 - s * 0.09f, style = Stroke(width = s * 0.18f))
             drawCircle(c.fg, radius = s * 0.1f, center = Offset(s / 2, s / 2))
         }
+    }
+}
+
+/** Barra das telas secundárias (editar ficha): "‹ voltar", título e uma ação opcional à direita. */
+@Composable
+fun BackTopBar(backLabel: String, title: String, onBack: () -> Unit, actions: @Composable RowScope.() -> Unit = {}) {
+    val c = SlicedTheme.colors
+    Column(Modifier.background(c.bg)) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 60.dp).padding(horizontal = 8.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            GhostButton(backLabel, onBack, color = c.muted, leading = { Icon(SlicedIcons.Back, null, Modifier.size(18.dp)) })
+            Text(
+                title, style = SlicedTheme.type.treinoName, color = c.fg, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            actions()
+        }
+        HorizontalDivider(color = c.line)
     }
 }

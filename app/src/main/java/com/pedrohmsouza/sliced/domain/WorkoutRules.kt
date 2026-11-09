@@ -14,6 +14,7 @@ import com.pedrohmsouza.sliced.model.Treino
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
 import kotlin.math.max
@@ -31,7 +32,7 @@ object WorkoutRules {
 
     // ---------- Próximo treino (regra 1) ----------
 
-    /** O treino seguinte ao último registrado (A→B→C→D→E→A); sem registros, pelo dia da semana. */
+    /** O treino seguinte ao último registrado (A→B→C→D→E→A); sem registros, o marcado para o dia da semana. */
     fun nextTreino(sessions: List<Session>, today: LocalDate, program: ProgramSource): String {
         val order = program.order
         val last = sessions.firstOrNull()
@@ -39,14 +40,8 @@ object WorkoutRules {
             val i = order.indexOf(last.treino)
             return order[(i + 1).mod(order.size)]
         }
-        return when (today.dayOfWeek) {
-            DayOfWeek.MONDAY -> "A"
-            DayOfWeek.TUESDAY -> "B"
-            DayOfWeek.WEDNESDAY -> "C"
-            DayOfWeek.THURSDAY -> "D"
-            DayOfWeek.FRIDAY -> "E"
-            else -> "A"
-        }.takeIf { it in order } ?: order.first()
+        val weekday = ProgramRules.WEEKDAYS[today.dayOfWeek.value - 1]
+        return program.treinos.firstOrNull { it.day == weekday }?.id ?: order.first()
     }
 
     fun lastOf(sessions: List<Session>, treinoId: String): Session? = sessions.firstOrNull { it.treino == treinoId }
@@ -223,13 +218,49 @@ object WorkoutRules {
     fun volume(session: Session): Double = session.exercises.filter { it.type == RecordType.WR }
         .sumOf { e -> e.sets.sumOf { (it.kg ?: 0.0) * (it.reps ?: 0) } }
 
+    /** [month]: dias diferentes com treino no mês de hoje (dois treinos no mesmo dia contam 1). */
     data class Stats(val month: Int, val total: Int, val avgMin: Int?)
 
     fun stats(sessions: List<Session>, today: LocalDate): Stats {
         val ym = today.toString().take(7)
         val recent = sessions.take(10).filter { it.durationMin > 0 }
         val avg = if (recent.isEmpty()) null else (recent.sumOf { it.durationMin } / recent.size.toDouble()).roundToInt()
-        return Stats(sessions.count { it.date.startsWith(ym) }, sessions.size, avg)
+        return Stats(sessions.filter { it.date.startsWith(ym) }.map { it.date }.distinct().size, sessions.size, avg)
+    }
+
+    // ---------- Calendário do mês ----------
+
+    /** Um dia do calendário com os treinos feitos nele (do mais antigo ao mais novo). */
+    data class MonthDay(val date: LocalDate, val treinos: List<String>, val isToday: Boolean)
+
+    /** Datas em que um treino foi feito no mês (para "em que dia da semana fiz cada treino"). */
+    data class TreinoDates(val treino: String, val dates: List<LocalDate>)
+
+    data class Month(
+        val month: YearMonth,
+        /** Semanas de segunda a domingo; null = dia de fora do mês (preenche a grade). */
+        val cells: List<MonthDay?>,
+        val trainedDays: Int,
+        val sessions: Int,
+        val byTreino: List<TreinoDates>,
+    )
+
+    fun month(sessions: List<Session>, month: YearMonth, today: LocalDate, program: ProgramSource): Month {
+        val inMonth = sessions.filter { it.date.startsWith(month.toString()) }.asReversed()
+        val byDay = inMonth.groupBy { it.date }
+        val first = month.atDay(1)
+        val lead = first.dayOfWeek.value - 1 // segunda = 0
+        val days = (1..month.lengthOfMonth()).map { d ->
+            val date = month.atDay(d)
+            MonthDay(date, byDay[date.toString()].orEmpty().map { it.treino }, date == today)
+        }
+        val cells = List<MonthDay?>(lead) { null } + days
+        val padded = cells + List((7 - cells.size % 7) % 7) { null }
+        val order = program.order
+        val byTreino = inMonth.groupBy { it.treino }
+            .map { (t, list) -> TreinoDates(t, list.map { LocalDate.parse(it.date) }) }
+            .sortedBy { order.indexOf(it.treino).let { i -> if (i < 0) Int.MAX_VALUE else i } }
+        return Month(month, padded, byDay.size, inMonth.size, byTreino)
     }
 
     data class ChartOption(val exercise: PlannedExercise, val treinoId: String)

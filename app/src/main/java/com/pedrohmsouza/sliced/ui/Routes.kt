@@ -13,3 +13,12 @@ import kotlinx.serialization.Serializable
 @Serializable data class HistoryRoute(val openSessionId: String? = null)
 
 @Serializable data object WorkoutRoute
+
+/** Mapa do corpo da semana. */
+@Serializable data object BodyRoute
+
+/** Editar a ficha, começando pelo treino [treinoId]. */
+@Serializable data class EditProgramRoute(val treinoId: String = "A")
+
+/** Editar um exercício da ficha; [exerciseId] null = exercício novo. */
+@Serializable data class EditExerciseRoute(val treinoId: String, val exerciseId: String? = null)

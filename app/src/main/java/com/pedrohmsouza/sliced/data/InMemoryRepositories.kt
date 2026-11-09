@@ -1,6 +1,10 @@
 package com.pedrohmsouza.sliced.data
 
 import com.pedrohmsouza.sliced.model.Draft
+import com.pedrohmsouza.sliced.model.Program
+import com.pedrohmsouza.sliced.model.ProgramSource
+import com.pedrohmsouza.sliced.model.StaticProgram
+import com.pedrohmsouza.sliced.model.toProgram
 import com.pedrohmsouza.sliced.model.Session
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,4 +26,10 @@ class InMemoryDraftRepository(initial: Draft? = null) : DraftRepository {
     override val draft: Flow<Draft?> = state
     override suspend fun save(draft: Draft) { state.value = draft }
     override suspend fun clear() { state.value = null }
+}
+
+class InMemoryProgramRepository(initial: ProgramSource = StaticProgram) : ProgramRepository {
+    private val state = MutableStateFlow(initial.toProgram())
+    override val program: Flow<ProgramSource> = state
+    override suspend fun update(transform: (Program) -> Program) = state.update(transform)
 }

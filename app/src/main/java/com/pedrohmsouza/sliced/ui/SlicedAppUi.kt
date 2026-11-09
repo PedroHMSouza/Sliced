@@ -24,6 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -34,7 +36,20 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.pedrohmsouza.sliced.ui.history.HistoryScreen
 import com.pedrohmsouza.sliced.ui.history.HistoryViewModel
+import com.pedrohmsouza.sliced.R
 import com.pedrohmsouza.sliced.SlicedApp
+import com.pedrohmsouza.sliced.ui.body.BodyScreen
+import com.pedrohmsouza.sliced.ui.body.BodyViewModel
+import com.pedrohmsouza.sliced.ui.components.BackTopBar
+import com.pedrohmsouza.sliced.ui.edit.ExerciseEditEvent
+import com.pedrohmsouza.sliced.ui.edit.ExerciseEditScreen
+import com.pedrohmsouza.sliced.ui.edit.ExerciseEditTopBar
+import com.pedrohmsouza.sliced.ui.edit.ExerciseEditViewModel
+import com.pedrohmsouza.sliced.ui.edit.ProgramEditActions
+import com.pedrohmsouza.sliced.ui.edit.ProgramEditScreen
+import com.pedrohmsouza.sliced.ui.edit.ProgramEditViewModel
+import com.pedrohmsouza.sliced.ui.edit.asActions
+import com.pedrohmsouza.sliced.ui.edit.rememberPhotoPicker
 import com.pedrohmsouza.sliced.ui.components.CenteredColumn
 import com.pedrohmsouza.sliced.ui.components.MainTab
 import com.pedrohmsouza.sliced.ui.components.MainTopBar
@@ -55,7 +70,7 @@ import kotlinx.coroutines.flow.first
 
 /**
  * Raiz da UI: um Scaffold global (barra do descanso embaixo e avisos/snackbar) e o
- * NavHost com as três telas. Cada tela desenha a própria barra superior.
+ * NavHost com as telas. Cada tela desenha a própria barra superior.
  */
 @Composable
 fun SlicedAppUi() {
@@ -113,6 +128,7 @@ fun SlicedAppUi() {
                             onStart = { id -> vm.start(id) { nav.navigate(WorkoutRoute) { launchSingleTop = true } } },
                             onContinue = { nav.navigate(WorkoutRoute) { launchSingleTop = true } },
                             contentPadding = ScreenPadding,
+                            onEdit = { id -> nav.navigate(EditProgramRoute(id)) { launchSingleTop = true } },
                         )
                     }
                 }
@@ -162,8 +178,54 @@ fun SlicedAppUi() {
                 Column(Modifier.fillMaxSize()) {
                     MainTopBar(MainTab.Historico) { nav.goTab(it) }
                     CenteredColumn {
-                        HistoryScreen(state, route.openSessionId, vm::delete, vm::selectChartExercise, ScreenPadding)
+                        HistoryScreen(state, route.openSessionId, vm::delete, vm::selectChartExercise, ScreenPadding, vm::shiftMonth)
                     }
+                }
+            }
+            composable<BodyRoute> {
+                val vm: BodyViewModel = viewModel(factory = BodyViewModel.Factory)
+                val state by vm.uiState.collectAsStateWithLifecycle()
+                Column(Modifier.fillMaxSize()) {
+                    MainTopBar(MainTab.Corpo) { nav.goTab(it) }
+                    CenteredColumn { BodyScreen(state, vm::shiftWeek, ScreenPadding) }
+                }
+            }
+            composable<EditProgramRoute> { entry ->
+                val route = entry.toRoute<EditProgramRoute>()
+                val vm: ProgramEditViewModel = viewModel(factory = ProgramEditViewModel.factory(route.treinoId))
+                val state by vm.uiState.collectAsStateWithLifecycle()
+                val actions = remember(vm) {
+                    object : ProgramEditActions {
+                        override fun select(treinoId: String) = vm.select(treinoId)
+                        override fun rename(name: String) = vm.rename(name)
+                        override fun setDay(day: String) = vm.setDay(day)
+                        override fun move(exerciseId: String, delta: Int) = vm.move(exerciseId, delta)
+                        override fun openExercise(exerciseId: String?) {
+                            nav.navigate(EditExerciseRoute(vm.uiState.value.selected, exerciseId)) { launchSingleTop = true }
+                        }
+                    }
+                }
+                Column(Modifier.fillMaxSize()) {
+                    BackTopBar(stringResource(R.string.workout_back), stringResource(R.string.edit_program_title), { nav.popBackStack() })
+                    CenteredColumn { ProgramEditScreen(state, actions, ScreenPadding) }
+                }
+            }
+            composable<EditExerciseRoute> { entry ->
+                val route = entry.toRoute<EditExerciseRoute>()
+                val vm: ExerciseEditViewModel = viewModel(factory = ExerciseEditViewModel.factory(route.treinoId, route.exerciseId))
+                val state by vm.uiState.collectAsStateWithLifecycle()
+                val pickPhoto = rememberPhotoPicker(vm::pickMedia)
+                val actions = remember(vm) { vm.asActions { pickPhoto() } }
+                LaunchedEffect(vm) {
+                    vm.eventFlow.collect { e ->
+                        when (e) {
+                            ExerciseEditEvent.Done -> if (entry.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) nav.popBackStack()
+                        }
+                    }
+                }
+                Column(Modifier.fillMaxSize()) {
+                    ExerciseEditTopBar(state, { nav.popBackStack() }, vm::save)
+                    CenteredColumn { ExerciseEditScreen(state, actions, ScreenPadding) }
                 }
             }
         }
@@ -171,7 +233,11 @@ fun SlicedAppUi() {
 }
 
 private fun NavHostController.goTab(tab: MainTab) {
-    val route: Any = if (tab == MainTab.Treinos) HomeRoute else HistoryRoute()
+    val route: Any = when (tab) {
+        MainTab.Treinos -> HomeRoute
+        MainTab.Historico -> HistoryRoute()
+        MainTab.Corpo -> BodyRoute
+    }
     navigate(route) {
         popUpTo(HomeRoute) { saveState = true }
         launchSingleTop = true

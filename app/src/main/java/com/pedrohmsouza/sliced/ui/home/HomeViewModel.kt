@@ -12,6 +12,7 @@ import com.pedrohmsouza.sliced.model.ProgramSource
 import com.pedrohmsouza.sliced.model.Session
 import com.pedrohmsouza.sliced.model.Treino
 import com.pedrohmsouza.sliced.ui.container
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -33,22 +34,22 @@ data class HomeUiState(
 )
 
 /**
- * ViewModel: sobrevive a rotações de tela e guarda o estado da tela. Ele combina dois
- * fluxos (histórico + rascunho) num único [HomeUiState]. A tela só observa `uiState`
+ * ViewModel: sobrevive a rotações de tela e guarda o estado da tela. Ele combina três
+ * fluxos (ficha + histórico + rascunho) num único [HomeUiState]. A tela só observa `uiState`
  * e chama funções; ela não sabe de onde vêm os dados ("fluxo de dados unidirecional").
  */
 class HomeViewModel(
-    private val program: ProgramSource,
+    private val programs: Flow<ProgramSource>,
     private val sessionRepo: SessionRepository,
     private val draftRepo: DraftRepository,
     private val now: () -> Long,
 ) : ViewModel() {
 
-    val uiState: StateFlow<HomeUiState> = combine(sessionRepo.sessions, draftRepo.draft) { sessions, draft ->
-        buildState(sessions, draft?.let { DraftBanner(it.treino, Fmt.hhmm(it.startedAt)) })
+    val uiState: StateFlow<HomeUiState> = combine(programs, sessionRepo.sessions, draftRepo.draft) { program, sessions, draft ->
+        buildState(program, sessions, draft?.let { DraftBanner(it.treino, Fmt.hhmm(it.startedAt)) })
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
-    private fun buildState(sessions: List<Session>, draft: DraftBanner?): HomeUiState {
+    private fun buildState(program: ProgramSource, sessions: List<Session>, draft: DraftBanner?): HomeUiState {
         val today = LocalDate.now()
         return HomeUiState(
             loading = false,
@@ -65,7 +66,7 @@ class HomeViewModel(
     fun start(treinoId: String, onStarted: () -> Unit) {
         viewModelScope.launch {
             if (draftRepo.draft.first() == null) {
-                val treino = program.treino(treinoId) ?: return@launch
+                val treino = programs.first().treino(treinoId) ?: return@launch
                 draftRepo.save(WorkoutRules.newDraft(treino, sessionRepo.sessions.first(), now()))
             }
             onStarted()
@@ -76,7 +77,7 @@ class HomeViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val c = this.container
-                HomeViewModel(c.program, c.sessions, c.drafts, c.now)
+                HomeViewModel(c.programs.program, c.sessions, c.drafts, c.now)
             }
         }
     }

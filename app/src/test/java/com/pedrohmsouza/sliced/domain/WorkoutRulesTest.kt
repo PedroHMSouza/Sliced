@@ -11,12 +11,14 @@ import com.pedrohmsouza.sliced.model.DraftSet
 import com.pedrohmsouza.sliced.model.FieldKey
 import com.pedrohmsouza.sliced.model.LoggedSet
 import com.pedrohmsouza.sliced.model.StaticProgram
+import com.pedrohmsouza.sliced.model.toProgram
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
+import java.time.YearMonth
 import kotlin.random.Random
 
 /** Uma regra por grupo de testes, na mesma numeração da especificação. */
@@ -35,6 +37,12 @@ class WorkoutRulesTest {
     @Test fun next_withoutHistoryUsesWeekday() {
         val expected = listOf("A", "B", "C", "D", "E", "A", "A") // seg..dom
         (0..6).forEach { i -> assertEquals(expected[i], WorkoutRules.nextTreino(emptyList(), monday.plusDays(i.toLong()), P)) }
+    }
+
+    @Test fun next_withoutHistoryFollowsEditedDays() {
+        val p = ProgramRules.updateTreino(P.toProgram(), "C") { it.copy(day = "Sábado") }
+        assertEquals("C", WorkoutRules.nextTreino(emptyList(), monday.plusDays(5), p))
+        assertEquals("A", WorkoutRules.nextTreino(emptyList(), monday.plusDays(2), p)) // quarta ficou sem treino
     }
 
     // ---------- Regra 2: "Anterior" ----------
@@ -197,6 +205,29 @@ class WorkoutRulesTest {
         assertEquals(5, s.month) // 02/11 a 06/11
         assertEquals(7, s.total)
         assertEquals(53, s.avgMin)
+    }
+
+    @Test fun stats_monthCountsDaysNotSessions() {
+        val h = listOf(session("B", monday, emptyList()).copy(id = "b"), session("A", monday, emptyList()))
+        assertEquals(1, WorkoutRules.stats(h, monday).month)
+    }
+
+    @Test fun month_gridStartsOnMondayAndListsWeekdaysPerTreino() {
+        val m = WorkoutRules.month(SampleData.history, YearMonth.of(2026, 11), SampleData.today, P)
+        // 01/11/2026 é domingo: 6 casas vazias antes dele; a grade fecha semanas inteiras.
+        assertEquals(6, m.cells.takeWhile { it == null }.size)
+        assertEquals(0, m.cells.size % 7)
+        assertEquals(LocalDate.of(2026, 11, 1), m.cells[6]!!.date)
+        assertEquals(listOf("A"), m.cells[7]!!.treinos) // seg 02/11
+        assertEquals(listOf("B"), m.cells[8]!!.treinos) // ter 03/11
+        assertEquals(emptyList<String>(), m.cells[6]!!.treinos)
+        assertTrue(m.cells.filterNotNull().first { it.date == SampleData.today }.isToday)
+        assertEquals(5, m.trainedDays)
+        assertEquals(5, m.sessions)
+        // Os A de outubro ficam de fora; a lista segue a ordem da ficha.
+        assertEquals(listOf("A", "B", "C", "D", "E"), m.byTreino.map { it.treino })
+        assertEquals(listOf(LocalDate.of(2026, 11, 2)), m.byTreino.first().dates)
+        assertEquals("seg 02", Fmt.weekdayDay(m.byTreino.first().dates.first()))
     }
 
     @Test fun chart_pointsAreHeaviestSetPerSessionOldestFirst() {

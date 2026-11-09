@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -30,7 +33,11 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pedrohmsouza.sliced.R
+import com.pedrohmsouza.sliced.model.PlannedExercise
 import com.pedrohmsouza.sliced.ui.components.Card
+import com.pedrohmsouza.sliced.ui.components.ExerciseImage
+import com.pedrohmsouza.sliced.ui.components.ExerciseInfoDialog
+import com.pedrohmsouza.sliced.ui.components.GhostButton
 import com.pedrohmsouza.sliced.ui.components.Line
 import com.pedrohmsouza.sliced.ui.components.Plate
 import com.pedrohmsouza.sliced.ui.components.PlateSize
@@ -51,6 +58,8 @@ fun HomeScreen(
     onStart: (String) -> Unit,
     onContinue: () -> Unit,
     contentPadding: PaddingValues,
+    /** Abre "Editar ficha" no treino indicado. */
+    onEdit: (String) -> Unit = {},
 ) {
     val c = SlicedTheme.colors
     // Qual treino está expandido. "*" = padrão (o próximo); "" = todos fechados.
@@ -78,7 +87,14 @@ fun HomeScreen(
             }
         }
         item(key = "week") { WeekStrip(state.week) }
-        item(key = "title") { SectionTitle(stringResource(R.string.home_program)) }
+        item(key = "title") {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SectionTitle(stringResource(R.string.home_program), Modifier.weight(1f))
+                GhostButton(stringResource(R.string.home_edit), { onEdit(openId.ifEmpty { state.next }) }, color = c.fg, leading = {
+                    Icon(SlicedIcons.Edit, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp))
+                })
+            }
+        }
         item(key = "list") {
             Card {
                 state.treinos.forEachIndexed { i, item ->
@@ -111,6 +127,7 @@ private fun TreinoRow(
 ) {
     val c = SlicedTheme.colors
     val t = item.treino
+    var info by remember { mutableStateOf<PlannedExercise?>(null) }
     val rotation by animateFloatAsState(if (open) 180f else 0f, label = "chev")
     val stateText = stringResource(if (open) R.string.a11y_expanded else R.string.a11y_collapsed)
     Column {
@@ -138,7 +155,7 @@ private fun TreinoRow(
         }
         AnimatedVisibility(open) {
             Column(
-                Modifier.padding(start = 60.dp, end = 14.dp, bottom = 16.dp),
+                Modifier.padding(start = 14.dp, end = 14.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Column {
@@ -147,9 +164,12 @@ private fun TreinoRow(
                             Modifier
                                 .fillMaxWidth()
                                 .then(if (i < t.exercises.lastIndex) Modifier.dashedBottom(c.line) else Modifier)
-                                .padding(vertical = 7.dp),
+                                .clickable(role = Role.Button, onClickLabel = stringResource(R.string.a11y_exercise_photo, e.name)) { info = e }
+                                .padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
+                            ExerciseImage(e.media, e.libraryId, Modifier.size(40.dp), radius = 8)
                             Text(e.name, style = SlicedTheme.type.body.copy(fontSize = 15.sp), color = c.fg, modifier = Modifier.weight(1f))
                             Text(e.targetText, style = SlicedTheme.type.body.copy(fontSize = 15.sp), color = c.muted)
                         }
@@ -163,6 +183,7 @@ private fun TreinoRow(
             }
         }
     }
+    info?.let { e -> ExerciseInfoDialog(e.name, e.media, e.libraryId, e.primary, e.secondary, e.tip) { info = null } }
 }
 
 @Composable

@@ -84,6 +84,18 @@ data class ActiveWorkoutEntity(
     val updatedAt: Long,
 )
 
+/**
+ * Ficha de treino editada no app: uma linha só (id = 0) com a ficha em JSON, como o
+ * rascunho. A ficha é pequena, muda pouco e é sempre lida inteira; tabelas próprias não
+ * trariam nada. Sem linha = ficha inicial ([com.pedrohmsouza.sliced.model.StaticProgram]).
+ */
+@Entity(tableName = "program")
+data class ProgramEntity(
+    @PrimaryKey val id: Int = 0,
+    val json: String,
+    val updatedAt: Long,
+)
+
 /* Classes de leitura: o Room monta a árvore sessão → exercícios → séries com @Relation. */
 
 data class ExerciseWithSets(

@@ -18,8 +18,8 @@ android {
         applicationId = "com.pedrohmsouza.sliced"
         minSdk = 26
         targetSdk = 36 // Android 16
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
     }
 
     signingConfigs {
@@ -101,6 +101,11 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+
+    // Coil: mostra as fotos do catálogo (assets) e as fotos/GIFs escolhidos no celular.
+    // Só carrega arquivos locais, então o app continua sem permissão de internet.
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)

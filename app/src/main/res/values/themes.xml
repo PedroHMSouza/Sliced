@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema da janela (antes do Compose desenhar). As cores do app ficam em ui/theme. -->
+    <style name="Theme.Sliced" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+    </style>
+</resources>

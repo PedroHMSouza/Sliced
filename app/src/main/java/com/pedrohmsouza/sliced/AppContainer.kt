@@ -1,6 +1,8 @@
 package com.pedrohmsouza.sliced
 
 import android.content.Context
+import com.pedrohmsouza.sliced.timer.AndroidRestEffects
+import com.pedrohmsouza.sliced.timer.RestTimer
 import com.pedrohmsouza.sliced.ui.UserMessages
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +26,7 @@ import com.pedrohmsouza.sliced.model.StaticProgram
  *
  * Uma única instância é criada em [SlicedApp] e vive enquanto o processo viver.
  */
-class AppContainer(context: Context) {
+class AppContainer(private val context: Context) {
     val program: ProgramSource = StaticProgram
     // `by lazy`: o banco só é aberto na primeira vez em que alguém precisar dele.
     val database: AppDatabase by lazy { AppDatabase.create(context) }
@@ -35,4 +37,14 @@ class AppContainer(context: Context) {
 
     /** Escopo que vive o app inteiro: para gravações que não podem ser canceladas ao sair da tela. */
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /** Timer de descanso: um só para o app todo (a barra e a notificação mostram o mesmo). */
+    val restTimer: RestTimer by lazy {
+        RestTimer(
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
+            effects = AndroidRestEffects(context),
+            prefs = context.getSharedPreferences("rest_timer", Context.MODE_PRIVATE),
+            now = now,
+        )
+    }
 }

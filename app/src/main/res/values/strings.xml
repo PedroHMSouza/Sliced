@@ -39,6 +39,23 @@
     <string name="col_previous">Anterior</string>
     <string name="col_done">Feito</string>
 
+    <!-- Descanso -->
+    <string name="rest_label">Descanso · %1$s</string>
+    <string name="rest_over">Descanso acabou · próxima série</string>
+    <string name="rest_skip">Pular</string>
+    <string name="ch_countdown">Contagem do descanso</string>
+    <string name="ch_countdown_desc">Mostra quanto falta do descanso quando o app está em segundo plano.</string>
+    <string name="ch_done">Fim do descanso</string>
+    <string name="ch_done_desc">Toca e vibra quando o descanso acaba.</string>
+    <string name="notif_rest_title">Descanso · %1$s</string>
+    <string name="notif_rest_text">Toque para voltar ao treino</string>
+    <string name="notif_add15">+15 s</string>
+    <string name="notif_skip">Pular</string>
+    <string name="notif_done_title">Descanso acabou</string>
+    <string name="notif_done_text">Próxima série · %1$s</string>
+    <string name="notif_permission_hint">Ative as notificações do app para ser avisado do fim do descanso com a tela apagada.</string>
+    <string name="notif_permission_action">Ativar</string>
+
     <!-- Avisos -->
     <string name="msg_fill_fields">Preencha %1$s desta série</string>
     <string name="msg_saved">Treino %1$s salvo · %2$d min</string>
@@ -46,6 +63,8 @@
     <string name="msg_discarded">Treino descartado</string>
 
     <!-- Acessibilidade -->
+    <string name="a11y_minus15">Menos 15 segundos</string>
+    <string name="a11y_plus15">Mais 15 segundos</string>
     <string name="a11y_set_done">Série %1$d feita</string>
     <string name="a11y_done">marcada</string>
     <string name="a11y_not_done">não marcada</string>

@@ -141,6 +141,8 @@ fun WorkoutScreen(
     actions: WorkoutActions,
     focusRequest: WorkoutEvent.FocusField?,
     contentPadding: PaddingValues,
+    /** Não nulo quando as notificações estão desligadas: mostra o aviso com o botão "Ativar". */
+    onEnableNotifications: (() -> Unit)? = null,
 ) {
     val c = SlicedTheme.colors
     val d = state.draft ?: return
@@ -153,6 +155,16 @@ fun WorkoutScreen(
         contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
+        if (onEnableNotifications != null) {
+            item(key = "notif") {
+                Card(borderColor = c.warn, radius = 12.dp) {
+                    Row(Modifier.padding(start = 14.dp, end = 8.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.notif_permission_hint), style = SlicedTheme.type.small, color = c.fg, modifier = Modifier.weight(1f))
+                        GhostButton(stringResource(R.string.notif_permission_action), onEnableNotifications, color = c.fg)
+                    }
+                }
+            }
+        }
         itemsIndexed(d.exercises, key = { i, e -> "$i-${e.exerciseId}" }) { ei, e ->
             ExerciseCard(ei, e, state.exercises.getOrNull(ei), actions, focus)
         }

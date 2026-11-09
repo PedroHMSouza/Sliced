@@ -1,5 +1,8 @@
 package com.pedrohmsouza.sliced.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -35,7 +38,8 @@ import com.pedrohmsouza.sliced.ui.home.HomeScreen
 import com.pedrohmsouza.sliced.ui.home.HomeViewModel
 import com.pedrohmsouza.sliced.ui.theme.SlicedTheme
 import com.pedrohmsouza.sliced.ui.workout.KeepScreenOn
-import com.pedrohmsouza.sliced.ui.workout.RestControl
+import com.pedrohmsouza.sliced.ui.components.RestBar
+import com.pedrohmsouza.sliced.ui.workout.rememberNotificationAccess
 import com.pedrohmsouza.sliced.ui.workout.WorkoutEvent
 import com.pedrohmsouza.sliced.ui.workout.WorkoutScreen
 import com.pedrohmsouza.sliced.ui.workout.WorkoutTopBar
@@ -71,16 +75,20 @@ fun SlicedAppUi() {
         }
     }
 
-    val rest = remember {
-        object : RestControl {
-            override fun start(seconds: Int, label: String) {}
-            override fun stop() {}
-        }
-    }
+    val rest = container.restTimer
+    val restState by rest.state.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = SlicedTheme.colors.bg,
         snackbarHost = { SnackbarHost(snackbar) },
+        bottomBar = {
+            AnimatedVisibility(restState != null, enter = slideInVertically { it }, exit = slideOutVertically { it }) {
+                // Guarda o último estado para a animação de saída ter o que desenhar.
+                val last = remember { mutableStateOf(restState) }
+                restState?.let { last.value = it }
+                last.value?.let { RestBar(it, onAdjust = rest::adjust, onSkip = rest::stop, now = container.now) }
+            }
+        },
     ) { inner ->
         NavHost(
             navController = nav,
@@ -105,6 +113,7 @@ fun SlicedAppUi() {
             composable<WorkoutRoute> {
                 val vm: WorkoutViewModel = viewModel(factory = WorkoutViewModel.factory(rest))
                 val state by vm.uiState.collectAsStateWithLifecycle()
+                val notifications = rememberNotificationAccess()
                 KeepScreenOn()
                 LaunchedEffect(state.loading, state.draft) {
                     // Sem treino em andamento (ex.: abriu por um atalho velho): volta para Treinos.
@@ -127,7 +136,10 @@ fun SlicedAppUi() {
                     } else {
                         WorkoutTopBar(state, onBack = { nav.leaveWorkout(null) }, onFinish = vm::onOpenFinish, now = container.now)
                         CenteredColumn {
-                            WorkoutScreen(state, remember(vm) { vm.asActions() }, focusRequest, ScreenPadding)
+                            WorkoutScreen(
+                                state, remember(vm) { vm.asActions() }, focusRequest, ScreenPadding,
+                                onEnableNotifications = notifications.request.takeIf { !notifications.enabled },
+                            )
                         }
                     }
                 }
